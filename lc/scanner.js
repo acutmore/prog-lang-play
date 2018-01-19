@@ -41,11 +41,15 @@ class FileIterator {
 
 class Token {
     /**
-     * @param {string} type 
-     * @param {string?} value 
+     * @param {string} type
+     * @param {number} line
+     * @param {number} col
+     * @param {string?} value
      */
-    constructor(type, value) {
+    constructor(type, line, col, value) {
         this.type = type;
+        this.line = line;
+        this.col = col;
         this.value = value;
     }
 
@@ -55,15 +59,32 @@ class Token {
         }
         return this.type;
     }
+
+    toString() {
+        return this.inspect();
+    }
 }
 
-Token.Lambda       = new Token('LAMB', void 0);
-Token.Dot          = new Token('DOT', void 0);
-Token.BracketOpen  = new Token('(', void 0);
-Token.BracketClose = new Token(')', void 0);
-Token.EOF          = new Token('EOF', void 0);
-Token.Variable     = name => new Token('VAR', name);
+const Tokens = {
+    Lambda:        'LAMB',
+    Dot:           'DOT',
+    BracketOpen:   '(',
+    BracketClose:  ')',
+    Var:           'VAR',
+    EOF:           'EOF'
+};
 
+Token.Lambda       = ({line, col}) => new Token(Tokens.Lambda, line, col, void 0);
+Token.Dot          = ({line, col}) => new Token(Tokens.Dot, line, col, void 0);
+Token.BracketOpen  = ({line, col}) => new Token(Tokens.BracketOpen, line, col, void 0);
+Token.BracketClose = ({line, col}) => new Token(Tokens.BracketClose, line, col, void 0);
+Token.EOF          = ({line, col}) => new Token(Tokens.EOF, line, col, void 0);
+Token.Variable     = ({line, col}, name) => new Token(Tokens.Var, line, col, name);
+
+/**
+ * @param {string} inputStr 
+ * @returns {IterableIterator<Token>}
+ */
 function* scan(inputStr) {
     const it = new FileIterator(inputStr[Symbol.iterator]());
 
@@ -86,31 +107,32 @@ function* scan(inputStr) {
                 }
                 break;
             }
-            yield Token.Variable(str);
+            yield Token.Variable(it, str);
             continue;
         }
 
         switch (char) {
             case '(':
-                yield Token.BracketOpen;
+                yield Token.BracketOpen(it);
                 continue;
             case ')':
-                yield Token.BracketClose;
+                yield Token.BracketClose(it);
                 continue;
             case 'λ':
             case '\\':
-                yield Token.Lambda;
+                yield Token.Lambda(it);
                 continue;
             case '.':
-                yield Token.Dot;
+                yield Token.Dot(it);
                 continue;
             default:
                 throw new Error(`unexpected token '${char}' @ ${it.line}:${it.col}`);
         }
     }
 
-    yield Token.EOF;
+    yield Token.EOF(it);
 }
 
 exports.scan = scan;
-exports.Tokens = Token;
+exports.Token = Token;
+exports.Tokens = Tokens;
