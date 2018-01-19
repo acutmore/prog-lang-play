@@ -30,7 +30,11 @@ class PeekIterator {
             pos = this.iterator.next();
         }
         this.currentPos = pos;
-        return pos.value;
+        if (pos.done) {
+            return '\0';
+        } else {
+            return pos.value;
+        }
     }
 
     peek() {
@@ -41,7 +45,11 @@ class PeekIterator {
         }
         const n = this.iterator.next();
         this.peekCache.set(nextIndex, n);
-        return n.value;
+        if (n.done) {
+            return '\0';
+        } else {
+            return n.value;
+        }
     }
 
     done() {

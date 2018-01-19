@@ -15,7 +15,7 @@ class FileIterator {
         /** @type{iPeekIterator<string>} */
         this.peekIterator = new PeekIterator(srcIterator);
         this.line = 1;
-        this.col = 1;
+        this.col = 0;
     }
 
     advance() {
@@ -40,13 +40,17 @@ class FileIterator {
 }
 
 class Token {
+    /**
+     * @param {string} type 
+     * @param {string?} value 
+     */
     constructor(type, value) {
         this.type = type;
         this.value = value;
     }
 
     inspect() {
-        if (typeof this.value === 'string') {
+        if (this.type === 'VAR') {
             return `@${this.value}`;
         }
         return this.type;
@@ -58,7 +62,7 @@ Token.Dot          = new Token('DOT', void 0);
 Token.BracketOpen  = new Token('(', void 0);
 Token.BracketClose = new Token(')', void 0);
 Token.EOF          = new Token('EOF', void 0);
-Token.Variable     = 'VAR';
+Token.Variable     = name => new Token('VAR', name);
 
 function* scan(inputStr) {
     const it = new FileIterator(inputStr[Symbol.iterator]());
@@ -82,7 +86,7 @@ function* scan(inputStr) {
                 }
                 break;
             }
-            yield new Token(Token.Variable, str);
+            yield Token.Variable(str);
             continue;
         }
 
