@@ -5,6 +5,6 @@ interface iPeekIterator<T> {
 
     currentPos: IteratorResult<T>;
     advance(): T;
-    peek(): T;
+    peek(i?: number): T;
     done(): boolean;
 }
