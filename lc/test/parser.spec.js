@@ -3,23 +3,30 @@ describe('parser', () => {
     const {deepStrictEqual} = require('assert');
     const {scan, Token} = require('../scanner');
     const {parse} = require('../parser');
+    const ignoreFields = new Set(['line', 'col']);
+
+    function trimTree(tree) {
+        return JSON.parse(
+            JSON.stringify(tree, (key, value) => ignoreFields.has(key) ? void 0 : value)
+        );
+    }
 
     it('parses', () => {
         const input = `((λx.x)(λy.y))`;
         const tree = parse(scan(input));
         const expected = {
-            "left": {
-                "paramId": { "type": "VAR", "line": 1, "col": 4, "value": "x" },
-                "body": { "type": "VAR", "line": 1, "col": 6, "value": "x" }
+            'left': {
+                'paramId': { 'type': 'VAR', 'value': 'x' },
+                'body': { 'type': 'VAR', 'value': 'x' }
             },
-            "right": {
-                "paramId": { "type": "VAR", "line": 1, "col": 10, "value": "y" },
-                "body": { "type": "VAR", "line": 1, "col": 12, "value": "y" }
+            'right': {
+                'paramId': { 'type': 'VAR', 'value': 'y' },
+                'body': { 'type': 'VAR', 'value': 'y' }
             }
         };
         deepStrictEqual(
-            JSON.parse(JSON.stringify(tree)),
-            JSON.parse(JSON.stringify(expected))
+            trimTree(tree),
+            expected
         );
     });
 });
