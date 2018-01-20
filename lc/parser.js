@@ -2,6 +2,7 @@
 
 const {Token, Tokens} = require('./scanner');
 const {PeekIterator} = require('./peekIterator');
+const {CompilerError} = require('./errors');
 const { BracketOpen, BracketClose, Lambda, Dot, Variable, EOF } = Token;
 
 /**
@@ -11,9 +12,10 @@ const { BracketOpen, BracketClose, Lambda, Dot, Variable, EOF } = Token;
  */
 function expect(expectedType, token) {
    if (expectedType !== token.type) {
-       const err = new Error(`Expected ${expectedType} but saw ${token.type}`);
-       err.at = token;
-       throw err;
+       throw new CompilerError(
+           `Expected ${expectedType} but saw ${token.type}`,
+           token
+       );
    }
 }
 
@@ -110,7 +112,9 @@ function term(it) {
 function parse(tokens) {
     /** @type{iPeekIterator<Token>} */
     const it = new PeekIterator(tokens);
-    return program(it);
+    const p = program(it);
+    expect(Tokens.EOF, it.peek());
+    return p;
 }
 
 exports.parse = parse;

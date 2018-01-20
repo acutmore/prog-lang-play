@@ -1,6 +1,7 @@
 // @ts-check
 
 const PeekIterator = require('./peekIterator').PeekIterator;
+const {CompilerError} = require('./errors');
 
 function isWhitespace(char) {
     return /\s/.test(char);
@@ -82,7 +83,7 @@ Token.EOF          = ({line, col}) => new Token(Tokens.EOF, line, col, void 0);
 Token.Variable     = ({line, col}, name) => new Token(Tokens.Var, line, col, name);
 
 /**
- * @param {string} inputStr 
+ * @param {string} inputStr
  * @returns {IterableIterator<Token>}
  */
 function* scan(inputStr) {
@@ -126,7 +127,10 @@ function* scan(inputStr) {
                 yield Token.Dot(it);
                 continue;
             default:
-                throw new Error(`unexpected token '${char}' @ ${it.line}:${it.col}`);
+                throw new CompilerError(
+                    `unexpected token '${char}'`,
+                    it
+                );
         }
     }
 
