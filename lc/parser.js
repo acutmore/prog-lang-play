@@ -1,7 +1,30 @@
 // @ts-check
 
-const Token = require('./scanner').Tokens;
-const PeekIterator = require('./peekIterator').PeekIterator;
+const {Token, Tokens} = require('./scanner');
+const {PeekIterator} = require('./peekIterator');
+const { BracketOpen, BracketClose, Lambda, Dot, Variable, EOF } = Token;
+
+/**
+ * @param {string} expectedType
+ * @param {Token} token
+ * @throws {Error}
+ */
+function expect(expectedType, token) {
+   if (expectedType !== token.type) {
+       const err = new Error(`Expected ${expectedType} but saw ${token.type}`);
+       err.at = token;
+       throw err;
+   }
+}
+
+/**
+ * @param {string} expectedType
+ * @param {Token} token
+ * @returns {boolean}
+ */
+function test(expectedType, token) {
+    return expectedType === token.type;
+}
 
 class FunctionExpression {
     constructor(paramId, body) {
@@ -14,7 +37,7 @@ class FunctionExpression {
     }
 }
 
-class AppyExpression {
+class ApplyExpression {
     constructor(left, right) {
         this.left = left;
         this.right = right;
@@ -26,80 +49,68 @@ class AppyExpression {
 }
 
 /**
+ * program = abstration | application.
  * @param {iPeekIterator<Token>} it
  */
-function lamda(it) {
-    if (it.peek().type !== Token.Variable) {
-        throw new Error(`Expected Variable but saw ${it.peek()}`);
+function program(it) {
+    expect(Tokens.BracketOpen, it.peek(1));
+    if (test(Tokens.Lambda, it.peek(2))) {
+        return abstraction(it);
     }
-    const arg = it.advance().value;
-    if (it.peek().type !== Token.Dot) {
-        throw new Error(`Expected Dot but saw ${it.peek()}`);
-    }
-    it.advance(); // DOT
-
+    return application(it);
 }
 
 /**
+ * abstration = '(' '\' VAR '.' term ')'.
  * @param {iPeekIterator<Token>} it
  */
-function expression(it) {
-    const p = it.peek();
-    switch (p.type) {
-        case Token.Lambda:
-            it.advance();
-            return lamda(it);
-        case Token.BracketOpen:
-            it.advance();
-            const e = expression(it);
-            if (it.peek() === Token.BracketClose) {
-                return e;
-            }
-            if (it.peek() === Token.BracketOpen) {
-                it.advance();
-                const e2 = expression(it);
-                if (it.peek() === Token.BracketClose) {
-                    it.advance();
-                    return new AppyExpression(e, e2);
-                }
-                throw new Error(`Expected AppyExpression but saw ${it.peek()}`);
-            }
-            break
-    }
+function abstraction(it) {
+    expect(Tokens.BracketOpen, it.peek());
+    it.advance();
+    expect(Tokens.Lambda, it.peek());
+    it.advance();
+    expect(Tokens.Var, it.peek());
+    const v = it.advance();
+    expect(Tokens.Dot, it.peek());
+    it.advance();
+    const t = term(it);
+    expect(Tokens.BracketClose, it.peek());
+    it.advance();
+    return new FunctionExpression(v, t);
 }
 
 /**
- * @param {Iterator<Token>} tokens 
+ * application = '(' term term ')'.
+ * @param {iPeekIterator<Token>} it
  */
-function program(tokens) {
+function application(it) {
+    expect(Tokens.BracketOpen, it.peek());
+    it.advance();
+    const l = term(it);
+    const r = term(it);
+    expect(Tokens.BracketClose, it.peek());
+    it.advance();
+    return new ApplyExpression(l, r);
+}
+
+/**
+ * term = VAR | program.
+ * @param {iPeekIterator<Token>} it
+ */
+function term(it) {
+    if (test(Tokens.Var, it.peek())) {
+        return it.advance();
+    }
+    return program(it);
+}
+
+/**
+ * @param {Iterator<Token>} tokens
+ */
+function parse(tokens) {
     /** @type{iPeekIterator<Token>} */
     const it = new PeekIterator(tokens);
-    const t = it.advance();
-    switch (t.type) {
-        case Token.BracketOpen:
-            const leftE = expression(it);
-            if (it.peek() !== Token.BracketClose) {
-                throw new Error(`Expecting ${Token.BracketClose} but got ${it.peek()}`);
-            }
-            it.advance(); // bracketClose
-            if (it.peek() !== Token.BracketOpen) {
-                throw new Error(`Expecting ${Token.BracketOpen} but got ${it.peek()}`);
-            }
-            it.advance(); // bracketOpen
-            const rightE = expression(it);
-            if (it.peek() !== Token.BracketClose) {
-                throw new Error(`Expecting ${Token.BracketClose} but got ${it.peek()}`);
-            }
-            it.advance(); // bracketClose 
-            const e =  new AppyExpression(leftE, rightE);
-            if (it.peek() !== Token.EOF) {
-                throw new Error(`Expecting ${Token.EOF} but got ${it.peek()}`);
-            }
-            it.advance();
-            break;
-        default:
-            throw new Error(`Unexpected token ${t}`);
-    }
+    return program(it);
 }
 
-exports.program = program;
+exports.parse = parse;
