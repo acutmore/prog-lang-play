@@ -2,7 +2,27 @@
 
 const {Token} = require('./scanner');
 
-class Expression {};
+class Expression {
+    /**
+     * @param {ExpressionVisitor} visitor
+     */
+    accept(visitor) {}
+}
+
+class ExpressionVisitor {
+    /**
+     * @param {VariableExpression} ve
+     */
+    visitVariable(ve) {}
+    /**
+     * @param {FunctionExpression} fe
+     */
+    visitFunction(fe) {}
+    /**
+     * @param {ApplyExpression} ae
+     */
+    visitApplication(ae) {}
+}
 
 class VariableExpression extends Expression {
     /**
@@ -11,6 +31,13 @@ class VariableExpression extends Expression {
     constructor(id) {
         super();
         this.id = id;
+    }
+
+    /**
+     * @param {ExpressionVisitor} visitor
+     */
+    accept(visitor) {
+        visitor.visitVariable(this);
     }
 }
 
@@ -24,6 +51,13 @@ class FunctionExpression extends Expression  {
         this.paramId = paramId;
         this.body = body;
     }
+
+    /**
+     * @param {ExpressionVisitor} visitor
+     */
+    accept(visitor) {
+        visitor.visitFunction(this);
+    }
 }
 
 class ApplyExpression extends Expression {
@@ -36,9 +70,17 @@ class ApplyExpression extends Expression {
         this.left = left;
         this.right = right;
     }
+
+    /**
+     * @param {ExpressionVisitor} visitor
+     */
+    accept(visitor) {
+        visitor.visitApplication(this);
+    }
 }
 
 exports.Expression = Expression;
+exports.ExpressionVisitor = ExpressionVisitor;
 exports.VariableExpression = VariableExpression;
 exports.FunctionExpression = FunctionExpression;
 exports.ApplyExpression = ApplyExpression;
