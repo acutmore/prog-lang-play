@@ -18,21 +18,21 @@ describe('jsTranspiler', () => {
     it('generates javascript identity function', () => {
         strictEqual(
             transpile(`λa.a`),
-            `(a => (a))`
+            `(a => a)`
         );
     });
 
     it('generates javascript function call', () => {
         strictEqual(
             transpile(`a b`),
-            `(a(b))`
+            `a(b)`
         );
     });
 
     it('compiles small program', () => {
         strictEqual(
             transpile(`(λa.λb.a b) foo bar`),
-            `(((a => ((b => ((a(b))))))(foo))(bar))`
+            `(a => (b => a(b)))(foo)(bar)`
         );
     });
 
