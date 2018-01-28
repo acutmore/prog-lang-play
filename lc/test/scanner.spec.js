@@ -22,8 +22,8 @@ describe('scanner', () => {
         [
             `( \\left . \\right . left )`,
             [BracketOpen(lc(1, 1)),
-                Lambda(lc(1, 3)), Variable(lc(1, 7), 'left'), Dot(lc(1, 9)),
-                    Lambda(lc(1, 11)), Variable(lc(1, 16), 'right'), Dot(lc(1, 18)), Variable(lc(1, 23), 'left'),
+                Lambda(lc(1, 3)), Variable(lc(1, 4), 'left'), Dot(lc(1, 9)),
+                    Lambda(lc(1, 11)), Variable(lc(1, 12), 'right'), Dot(lc(1, 18)), Variable(lc(1, 20), 'left'),
              BracketClose(lc(1, 25)), EOF(lc(1, 26))]
         ]
     ].forEach(([src, expected], i) => {

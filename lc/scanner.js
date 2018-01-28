@@ -100,6 +100,7 @@ function* scan(inputStr) {
         }
 
         if (/[a-z]/i.test(char)) {
+            const pos = { line: it.line, col: it.col };
             let str = char;
             for (;;) {
                 if (/[a-z0-9_]/.test(it.peek())) {
@@ -108,7 +109,7 @@ function* scan(inputStr) {
                 }
                 break;
             }
-            yield Token.Variable(it, str);
+            yield Token.Variable(pos, str);
             continue;
         }
 
