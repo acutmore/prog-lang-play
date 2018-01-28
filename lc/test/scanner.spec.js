@@ -25,6 +25,14 @@ describe('scanner', () => {
                 Lambda(lc(1, 3)), Variable(lc(1, 4), 'left'), Dot(lc(1, 9)),
                     Lambda(lc(1, 11)), Variable(lc(1, 12), 'right'), Dot(lc(1, 18)), Variable(lc(1, 20), 'left'),
              BracketClose(lc(1, 25)), EOF(lc(1, 26))]
+        ],
+        [
+            `__underscore`,
+            [Variable(lc(1,1), '__underscore'), EOF(lc(1, 13))]
+        ],
+        [
+            `camelCase`,
+            [Variable(lc(1,1), 'camelCase'), EOF(lc(1, 10))]
         ]
     ].forEach(([src, expected], i) => {
         it(`Correctly scans '${src.replace(/\n/g, '\\n')}'`, function() {

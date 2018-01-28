@@ -99,11 +99,11 @@ function* scan(inputStr) {
             continue;
         }
 
-        if (/[a-z]/i.test(char)) {
+        if (/[a-z_]/i.test(char)) {
             const pos = { line: it.line, col: it.col };
             let str = char;
             for (;;) {
-                if (/[a-z0-9_]/.test(it.peek())) {
+                if (/[a-z0-9_]/i.test(it.peek())) {
                     str += it.advance();
                     continue;
                 }
