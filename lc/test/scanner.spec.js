@@ -1,7 +1,7 @@
 
 describe('scanner', () => {
     const {scan, Tokens, Token} = require('../scanner');
-    const {BracketOpen, BracketClose, EOF, Dot, Variable, Lambda} = Token;
+    const {BracketOpen, BracketClose, EOF, Dot, Variable, Literal, Lambda} = Token;
     const {deepStrictEqual} = require('assert');
 
     const lc = (line, col) => ({line, col});
@@ -33,6 +33,14 @@ describe('scanner', () => {
         [
             `camelCase`,
             [Variable(lc(1,1), 'camelCase'), EOF(lc(1, 10))]
+        ],
+        [
+            `12345`,
+            [Literal(lc(1,1), '12345'), EOF(lc(1, 6))]
+        ],
+        [
+            `1_2_345`,
+            [Literal(lc(1,1), '12345'), EOF(lc(1, 8))]
         ]
     ].forEach(([src, expected], i) => {
         it(`Correctly scans '${src.replace(/\n/g, '\\n')}'`, function() {

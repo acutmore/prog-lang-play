@@ -72,6 +72,7 @@ const Tokens = {
     BracketOpen:   '(',
     BracketClose:  ')',
     Var:           'VAR',
+    Literal:       'LIT',
     EOF:           'EOF'
 };
 
@@ -81,6 +82,7 @@ Token.BracketOpen  = ({line, col}) => new Token(Tokens.BracketOpen, line, col, v
 Token.BracketClose = ({line, col}) => new Token(Tokens.BracketClose, line, col, void 0);
 Token.EOF          = ({line, col}) => new Token(Tokens.EOF, line, col, void 0);
 Token.Variable     = ({line, col}, name) => new Token(Tokens.Var, line, col, name);
+Token.Literal      = ({line, col}, text) => new Token(Tokens.Literal, line, col, text);
 
 /**
  * @param {string} inputStr
@@ -101,15 +103,15 @@ function* scan(inputStr) {
 
         if (/[a-z_]/i.test(char)) {
             const pos = { line: it.line, col: it.col };
-            let str = char;
-            for (;;) {
-                if (/[a-z0-9_]/i.test(it.peek())) {
-                    str += it.advance();
-                    continue;
-                }
-                break;
-            }
+            const str = char + consume(/[a-z0-9_]/i, it);
             yield Token.Variable(pos, str);
+            continue;
+        }
+
+        if (/[0-9]/.test(char)) {
+            const pos = { line: it.line, col: it.col };
+            const num = char + consume(/[0-9_]/, it).replace(/[_]/g, '');
+            yield Token.Literal(pos, num);
             continue;
         }
 
@@ -136,6 +138,22 @@ function* scan(inputStr) {
     }
 
     yield Token.EOF(it);
+}
+
+/**
+ * @param {RegExp} pattern
+ * @param {FileIterator} it
+ * @returns {string}
+ */
+function consume(pattern, it) {
+    let retVal = '';
+    for (;;) {
+        if (! pattern.test(it.peek())) {
+            break;
+        }
+        retVal += it.advance();
+    }
+    return retVal;
 }
 
 exports.scan = scan;
