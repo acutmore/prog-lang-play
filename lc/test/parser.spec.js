@@ -46,4 +46,46 @@ describe('parser', () => {
             cleanTree(parse(scan(`(m n) p`)))
         );
     });
+
+    it(`numeric literal '0' de-sugars to Church numeral`, () => {
+        deepStrictEqual(
+            cleanTree(parse(scan(`0`))),
+            cleanTree(parse(scan(`λf.λx.x`)))
+        );
+    });
+
+    it(`numeric literal '1' de-sugars to Church numeral`, () => {
+        deepStrictEqual(
+            cleanTree(parse(scan(`1`))),
+            cleanTree(parse(scan(`λf.λx.f x`)))
+        );
+    });
+
+    it(`numeric literal '2' de-sugars to Church numeral`, () => {
+        deepStrictEqual(
+            cleanTree(parse(scan(`2`))),
+            cleanTree(parse(scan(`λf.λx.f (f x)`)))
+        );
+    });
+
+    it('parses top level numeric apply', () => {
+        const input = `someFunction 0`;
+        const tree = parse(scan(input));
+        const expected = new ApplyExpression(
+            new VariableExpression(
+                Variable(p, 'someFunction')
+            ),
+            new FunctionExpression(
+                Variable(p, 'f'),
+                new FunctionExpression(
+                    Variable(p, 'x'),
+                    new VariableExpression(Variable(p, 'x'))
+                )
+            )
+        );
+        deepStrictEqual(
+            cleanTree(tree),
+            cleanTree(expected)
+        );
+    });
 });

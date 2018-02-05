@@ -29,6 +29,20 @@ describe('jsTranspiler', () => {
         );
     });
 
+    it(`numeric literal '0' changed into Church numerial`, () => {
+        strictEqual(
+            transpile(`0`),
+            `(f => (x => x))`
+        );
+    });
+
+    it(`numeric literal '1' changed into Church numerial`, () => {
+        strictEqual(
+            transpile(`1`),
+            `(f => (x => f(x)))`
+        );
+    });
+
     it('compiles small program', () => {
         strictEqual(
             transpile(`(λa.λb.a b) foo bar`),

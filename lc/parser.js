@@ -3,8 +3,10 @@
 const { Token, Tokens } = require('./scanner');
 const { PeekIterator } = require('./peekIterator');
 const { CompilerError } = require('./errors');
-const { Expression, VariableExpression, FunctionExpression, ApplyExpression } = require('./expressions');
-const { BracketOpen, BracketClose, Lambda, Dot, Var, EOF } = Tokens;
+const {
+    Expression, VariableExpression, FunctionExpression, ApplyExpression
+    } = require('./expressions');
+const { BracketOpen, BracketClose, Lambda, Dot, Var, Literal, EOF } = Tokens;
 
 /**
  * program -> expression EOF .
@@ -14,6 +16,7 @@ const { BracketOpen, BracketClose, Lambda, Dot, Var, EOF } = Tokens;
  * lamb -> primary .
  * primary -> `(` expression `)` .
  * primary -> VAR .
+ * primary -> LIT.
  */
 
 /**
@@ -49,6 +52,7 @@ function apply(it) {
             case BracketOpen:
             case Lambda:
             case Var:
+            case Literal:
                 const right = lamb(it);
                 exp = new ApplyExpression(exp, right);
                 break;
@@ -79,6 +83,7 @@ function lamb(it) {
 /**
  * primary -> '(' expression ')' .
  * primary -> VAR .
+ * primary -> LIT .
  * @param {iPeekIterator<Token>} it
  * @returns {Expression}
  */
@@ -89,8 +94,12 @@ function primary(it) {
         expect(BracketClose, it.advance());
         return e;
     }
-    const id = expect(Var, it.advance());
-    return new VariableExpression(id);
+    if (test(Var, it.peek())) {
+        const id = it.advance();
+        return new VariableExpression(id);
+    }
+    const literal = expect(Literal, it.advance());
+    return church_numeral(Number.parseInt(literal.value, 10));
 }
 
 /**
@@ -125,6 +134,24 @@ function expect(expectedType, token) {
  */
 function test(expectedType, token) {
     return expectedType === token.type;
+}
+
+/**
+ * De-sugars a number into a church numerial
+ * @param {number} value
+ * @returns {Expression}
+ */
+function church_numeral(value) {
+    const pos = { line: 0, col: 0 };
+    const fVar = Token.Variable(pos, 'f');
+    const xVar = Token.Variable(pos, 'x');
+    const f = new VariableExpression(fVar);
+    const x = new VariableExpression(xVar);
+
+    const body = Array.from({length: value})
+        .reduce(expression => new ApplyExpression(f, expression), x);
+
+    return new FunctionExpression(fVar, new FunctionExpression(xVar, body));
 }
 
 exports.parse = parse;
