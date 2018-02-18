@@ -73,6 +73,9 @@ const Tokens = {
     BracketClose:  ')',
     Var:           'VAR',
     Literal:       'LIT',
+    Let:           'LET',
+    Equal:         'EQUAL',
+    In:            'IN',
     EOF:           'EOF'
 };
 
@@ -81,6 +84,9 @@ Token.Dot          = ({line, col}) => new Token(Tokens.Dot, line, col, void 0);
 Token.BracketOpen  = ({line, col}) => new Token(Tokens.BracketOpen, line, col, void 0);
 Token.BracketClose = ({line, col}) => new Token(Tokens.BracketClose, line, col, void 0);
 Token.EOF          = ({line, col}) => new Token(Tokens.EOF, line, col, void 0);
+Token.Let          = ({line, col}) => new Token(Tokens.Let, line, col, void 0);
+Token.Equal        = ({line, col}) => new Token(Tokens.Equal, line, col, void 0);
+Token.In           = ({line, col}) => new Token(Tokens.In, line, col, void 0);
 Token.Variable     = ({line, col}, name) => new Token(Tokens.Var, line, col, name);
 Token.Literal      = ({line, col}, text) => new Token(Tokens.Literal, line, col, text);
 
@@ -104,7 +110,16 @@ function* scan(inputStr) {
         if (/[a-z_]/i.test(char)) {
             const pos = { line: it.line, col: it.col };
             const str = char + consume(/[a-z0-9_]/i, it);
-            yield Token.Variable(pos, str);
+            switch (str) {
+                case 'let':
+                    yield Token.Let(pos);
+                    break;
+                case 'in':
+                    yield Token.In(pos);
+                    break;
+                default:
+                    yield Token.Variable(pos, str);
+            }
             continue;
         }
 
@@ -128,6 +143,9 @@ function* scan(inputStr) {
                 continue;
             case '.':
                 yield Token.Dot(it);
+                continue;
+            case '=':
+                yield Token.Equal(it);
                 continue;
             default:
                 throw new CompilerError(
