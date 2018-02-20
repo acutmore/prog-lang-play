@@ -88,4 +88,11 @@ describe('parser', () => {
             cleanTree(expected)
         );
     });
+
+    it(`let expression de-sugars to function application`, () => {
+        deepStrictEqual(
+            cleanTree(parse(scan(`let x = λx.x in x x`))),
+            cleanTree(parse(scan(`(λx.x x)(λx.x)`)))
+        );
+    });
 });

@@ -6,7 +6,7 @@ const { CompilerError } = require('./errors');
 const {
     Expression, VariableExpression, FunctionExpression, ApplyExpression
     } = require('./expressions');
-const { BracketOpen, BracketClose, Lambda, Dot, Var, Literal, EOF } = Tokens;
+const { BracketOpen, BracketClose, Lambda, Dot, Var, Literal, Let, Equal, In, EOF } = Tokens;
 
 /**
  * program -> expression EOF .
@@ -15,6 +15,7 @@ const { BracketOpen, BracketClose, Lambda, Dot, Var, Literal, EOF } = Tokens;
  * lamb -> `λ` VAR `.` apply .
  * lamb -> primary .
  * primary -> `(` expression `)` .
+ * primary -> 'let' VAR '=' expression 'in' expression .
  * primary -> VAR .
  * primary -> LIT.
  */
@@ -82,6 +83,7 @@ function lamb(it) {
 
 /**
  * primary -> '(' expression ')' .
+ * primary -> 'let' VAR '=' expression 'in' expression .
  * primary -> VAR .
  * primary -> LIT .
  * @param {iPeekIterator<Token>} it
@@ -93,6 +95,9 @@ function primary(it) {
         const e = expression(it);
         expect(BracketClose, it.advance());
         return e;
+    }
+    if (test(Let, it.peek())) {
+        return letExpression(it);
     }
     if (test(Var, it.peek())) {
         const id = it.advance();
@@ -152,6 +157,22 @@ function church_numeral(value) {
         .reduce(expression => new ApplyExpression(f, expression), x);
 
     return new FunctionExpression(fVar, new FunctionExpression(xVar, body));
+}
+
+/**
+ * De-sugars a let expresssion into function application
+ * 'let' VAR '=' expression 'in' expression
+ * @param {iPeekIterator<Token>} it
+ * @returns {Expression}
+ */
+function letExpression(it) {
+    expect(Let, it.advance());
+    const id = expect(Var, it.advance());
+    expect(Equal, it.advance());
+    const val = expression(it);
+    expect(In, it.advance());
+    const exp = expression(it);
+    return new ApplyExpression(new FunctionExpression(id, exp), val);
 }
 
 exports.parse = parse;
