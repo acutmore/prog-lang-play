@@ -95,4 +95,11 @@ describe('parser', () => {
             cleanTree(parse(scan(`(λx.x x)(λx.x)`)))
         );
     });
+
+    it(`poly let expression de-sugars to mutiple function applications`, () => {
+        deepStrictEqual(
+            cleanTree(parse(scan(`let x = λx.x, y = λy.y in x y`))),
+            cleanTree(parse(scan(`(λx.λy.x y)(λx.x)(λy.y)`)))
+        );
+    });
 });

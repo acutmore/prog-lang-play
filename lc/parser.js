@@ -6,7 +6,10 @@ const { CompilerError } = require('./errors');
 const {
     Expression, VariableExpression, FunctionExpression, ApplyExpression
     } = require('./expressions');
-const { BracketOpen, BracketClose, Lambda, Dot, Var, Literal, Let, Equal, In, EOF } = Tokens;
+const {
+    BracketOpen, BracketClose, Lambda, Dot,
+    Var, Literal, Let, Equal, In, Comma, EOF
+    } = Tokens;
 
 /**
  * program -> expression EOF .
@@ -15,7 +18,7 @@ const { BracketOpen, BracketClose, Lambda, Dot, Var, Literal, Let, Equal, In, EO
  * lamb -> `λ` VAR `.` apply .
  * lamb -> primary .
  * primary -> `(` expression `)` .
- * primary -> 'let' VAR '=' expression 'in' expression .
+ * primary -> `let` VAR `=` expression (`,` VAR `=` expression)* `in` expression .
  * primary -> VAR .
  * primary -> LIT.
  */
@@ -83,7 +86,7 @@ function lamb(it) {
 
 /**
  * primary -> '(' expression ')' .
- * primary -> 'let' VAR '=' expression 'in' expression .
+ * primary -> `let` VAR `=` expression (`,` VAR `=` expression)* `in` expression .
  * primary -> VAR .
  * primary -> LIT .
  * @param {iPeekIterator<Token>} it
@@ -161,18 +164,32 @@ function church_numeral(value) {
 
 /**
  * De-sugars a let expresssion into function application
- * 'let' VAR '=' expression 'in' expression
+ * `let` VAR `=` expression (`,` VAR `=` expression)* `in` expression
  * @param {iPeekIterator<Token>} it
  * @returns {Expression}
  */
 function letExpression(it) {
     expect(Let, it.advance());
-    const id = expect(Var, it.advance());
-    expect(Equal, it.advance());
-    const val = expression(it);
+    const bindings = [];
+    while (true) {
+        const id = expect(Var, it.advance());
+        expect(Equal, it.advance());
+        const val = expression(it);
+        bindings.push({id, val});
+        if (test(Comma, it.peek())) {
+            it.advance();
+        } else {
+            break;
+        }
+    }
     expect(In, it.advance());
     const exp = expression(it);
-    return new ApplyExpression(new FunctionExpression(id, exp), val);
+    const curried = bindings.reduceRight(
+        (acc, {id}) => new FunctionExpression(id, acc), exp
+    );
+    return bindings.reduce(
+        (acc, {val}) => new ApplyExpression(acc, val), curried
+    );
 }
 
 exports.parse = parse;
