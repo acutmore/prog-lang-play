@@ -76,6 +76,7 @@ const Tokens = {
     Let:           'LET',
     Equal:         'EQUAL',
     In:            'IN',
+    Comma:         ',',
     EOF:           'EOF'
 };
 
@@ -87,6 +88,7 @@ Token.EOF          = ({line, col}) => new Token(Tokens.EOF, line, col, void 0);
 Token.Let          = ({line, col}) => new Token(Tokens.Let, line, col, void 0);
 Token.Equal        = ({line, col}) => new Token(Tokens.Equal, line, col, void 0);
 Token.In           = ({line, col}) => new Token(Tokens.In, line, col, void 0);
+Token.Comma        = ({line, col}) => new Token(Tokens.Comma, line, col, void 0);
 Token.Variable     = ({line, col}, name) => new Token(Tokens.Var, line, col, name);
 Token.Literal      = ({line, col}, text) => new Token(Tokens.Literal, line, col, text);
 
@@ -143,6 +145,9 @@ function* scan(inputStr) {
                 continue;
             case '.':
                 yield Token.Dot(it);
+                continue;
+            case ',':
+                yield Token.Comma(it);
                 continue;
             case '=':
                 yield Token.Equal(it);

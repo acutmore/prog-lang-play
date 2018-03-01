@@ -3,7 +3,7 @@ describe('scanner', () => {
     const {scan, Tokens, Token} = require('../scanner');
     const {
         BracketOpen, BracketClose, EOF, Dot,
-        Variable, Literal, Lambda, Let, In, Equal
+        Variable, Literal, Lambda, Let, In, Equal, Comma
     } = Token;
     const {deepStrictEqual} = require('assert');
 
@@ -51,6 +51,18 @@ describe('scanner', () => {
                 Let(lc(1,1)), Variable(lc(1,5), 'x'), Equal(lc(1,7)),
                 Variable(lc(1,9), 'y'), In(lc(1, 11)), Variable(lc(1,14), 'z'),
                 EOF(lc(1, 15))
+            ]
+        ],
+        [
+            `let x = y, y = x in z`,
+            [
+                Let(lc(1,1)),
+                Variable(lc(1,5), 'x'), Equal(lc(1,7)), Variable(lc(1,9), 'y'),
+                Comma(lc(1, 10)),
+                Variable(lc(1,12), 'y'), Equal(lc(1,14)), Variable(lc(1,16), 'x'),
+                In(lc(1, 18)),
+                Variable(lc(1,21), 'z'),
+                EOF(lc(1, 22))
             ]
         ]
     ].forEach(([src, expected], i) => {
