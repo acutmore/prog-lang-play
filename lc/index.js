@@ -1,8 +1,20 @@
+// @ts-check
 
-const scan = require('./scanner').scan;
+const {scan} = require('./scanner');
+const {parse} = require('./parser');
+const {JavascriptVisitor} = require('./jsTranspiler');
 
-for (const token of scan(`
-(\\a918ca.aasd)
-`)) {
-    console.log(token);
+/**
+ * @param {string} str
+ * @returns {string}
+ */
+function compileToJs(str) {
+    let retVal = '';
+    const visitor = new JavascriptVisitor(s => retVal += s);
+    const tokens = scan(str);
+    const program = parse(tokens);
+    program.accept(visitor);
+    return retVal;
 }
+
+exports.compileToJs = compileToJs;
