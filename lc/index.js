@@ -25,5 +25,7 @@ function compileToJs(str) {
     return program.accept(visitor);
 }
 
+exports.scan = scan;
+exports.parse = parse;
 exports.frontend = frontend;
 exports.compileToJs = compileToJs;

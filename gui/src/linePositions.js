@@ -1,3 +1,4 @@
+const {scan} = require('../../lc');
 
 /**
 * @typedef {Object} LinePos
@@ -49,4 +50,30 @@ function linePositions(inStr, startIndex, endIndex) {
     };
 }
 
+/**
+ * Given the input string and a LinePos will shift the LinePos down
+ * so that it lines up with the start of the overlapping token
+ * @param {string} inputStr
+ * @param {LinePos} startPos
+ * @returns {LinePos}
+ */
+function shiftToTokenStart(inputStr, startPos) {
+    /** @type {LinePos} */
+    let lastTokenPos = undefined;
+    for (const token of scan(inputStr)) {
+        const passed = token.line > startPos.line
+            || (token.line === startPos.line
+                && token.col >= startPos.col);
+        if (passed) {
+            break;
+        }
+        lastTokenPos = {
+            line: token.line,
+            col: token.col,
+        };
+    }
+    return lastTokenPos !== undefined ? lastTokenPos : startPos;
+}
+
 exports.linePositions = linePositions;
+exports.shiftToTokenStart = shiftToTokenStart;

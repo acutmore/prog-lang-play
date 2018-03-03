@@ -1,12 +1,13 @@
 const input = document.getElementById('input');
 const output = document.getElementById('output');
-const frontend = require('../../lc').frontend;
+const {frontend} = require('../../lc');
 const JsHighlighter = require('./jsHighlightTranspiler').jsHighlightTranspiler;
-const linePositions = require('./linePositions').linePositions;
+const {linePositions, shiftToTokenStart} = require('./linePositions');
 
 function compileWithHighlight(input, start, end) {
     const program = frontend(input);
-    return program.accept(new JsHighlighter(start, end));
+    const shiftedStart = shiftToTokenStart(input, start);
+    return program.accept(new JsHighlighter(shiftedStart, end));
 }
 
 input.onkeyup = () => {

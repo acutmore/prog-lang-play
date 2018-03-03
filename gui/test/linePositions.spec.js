@@ -1,7 +1,7 @@
 
 describe('linePositions', () => {
     const {deepStrictEqual} = require('assert');
-    const {linePositions} = require('../src/linePositions');
+    const {linePositions, shiftToTokenStart} = require('../src/linePositions');
 
     const src =
         'foo bar' + '\n' +
@@ -41,6 +41,18 @@ describe('linePositions', () => {
             end,
             { line: 2, col: 7 }
         );
+    });
+
+    describe('shiftToTokenStart', () => {
+        it('returns the start position of the overlapping token', () => {
+            const src = `λfoo.bar`;
+            const originalStart = { line: 1, col: src.indexOf('oo') + 1};
+            const shiftedStart = shiftToTokenStart(src, originalStart);
+            deepStrictEqual(
+                shiftedStart,
+                { line: 1, col: src.indexOf('foo') + 1}
+            );
+        });
     });
 
 });
