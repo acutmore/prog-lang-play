@@ -1,4 +1,5 @@
 // @ts-check
+/// <reference path="./expressions.d.ts" />
 
 const {
     ExpressionVisitor,
@@ -7,38 +8,33 @@ const {
     ApplyExpression
     } = require('./expressions');
 
-class JavascriptVisitor extends ExpressionVisitor {
-
-    /**
-     * @param {(s: string) => void} callback
-     */
-    constructor(callback) {
-        super();
-        this.callback = callback;
+/**
+ * @augments ExpressionVisitor<string>
+ */
+ class JavascriptVisitor extends ExpressionVisitor {
+    constructor() {
+        super("");
     }
-
     /**
      * @param {VariableExpression} ve
+     * @returns {string}
      */
     visitVariable(ve) {
-        this.callback(ve.id.value);
+        return ve.id.value;
     }
     /**
      * @param {FunctionExpression} fe
+     * @returns {string}
      */
     visitFunction(fe) {
-        this.callback(`(${fe.paramId.value} => `);
-        fe.body.accept(this);
-        this.callback(`)`);
+        return `(${fe.paramId.value} => ${fe.body.accept(this)})`;
     }
     /**
      * @param {ApplyExpression} ae
+     * @returns {string}
      */
     visitApplication(ae) {
-        ae.left.accept(this);
-        this.callback(`(`);
-        ae.right.accept(this);
-        this.callback(`)`);
+        return `${ae.left.accept(this)}(${ae.right.accept(this)})`;
     }
 }
 

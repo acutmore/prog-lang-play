@@ -1,4 +1,5 @@
 // @ts-check
+/// <reference path="./expressions.d.ts" />
 
 const {Token} = require('./scanner');
 
@@ -6,22 +7,39 @@ class Expression {
     /**
      * @param {ExpressionVisitor} visitor
      */
-    accept(visitor) {}
+    accept(visitor) {
+        return visitor.empty();
+    }
 }
 
 class ExpressionVisitor {
     /**
+     * @param {any} empty : T
+     */
+    constructor(empty) {
+        this.e = empty;
+    }
+    empty() {
+        return this.e;
+    }
+    /**
      * @param {VariableExpression} ve
      */
-    visitVariable(ve) {}
+    visitVariable(ve) {
+        return this.e;
+    }
     /**
      * @param {FunctionExpression} fe
      */
-    visitFunction(fe) {}
+    visitFunction(fe) {
+        return this.e;
+    }
     /**
      * @param {ApplyExpression} ae
      */
-    visitApplication(ae) {}
+    visitApplication(ae) {
+        return this.e;
+    }
 }
 
 class VariableExpression extends Expression {
@@ -37,11 +55,11 @@ class VariableExpression extends Expression {
      * @param {ExpressionVisitor} visitor
      */
     accept(visitor) {
-        visitor.visitVariable(this);
+        return visitor.visitVariable(this);
     }
 }
 
-class FunctionExpression extends Expression  {
+class FunctionExpression extends Expression {
      /**
      * @param {Token} paramId
      * @param {Expression} body
@@ -56,7 +74,7 @@ class FunctionExpression extends Expression  {
      * @param {ExpressionVisitor} visitor
      */
     accept(visitor) {
-        visitor.visitFunction(this);
+        return visitor.visitFunction(this);
     }
 }
 
@@ -75,7 +93,7 @@ class ApplyExpression extends Expression {
      * @param {ExpressionVisitor} visitor
      */
     accept(visitor) {
-        visitor.visitApplication(this);
+        return visitor.visitApplication(this);
     }
 }
 

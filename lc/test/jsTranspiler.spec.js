@@ -6,13 +6,8 @@ describe('jsTranspiler', () => {
     const {JavascriptVisitor} = require('../jsTranspiler');
 
     function transpile(inputStr) {
-        let retVal = '';
-        const visitor = new JavascriptVisitor(str => {
-            retVal += str;
-        });
         const exp = parse(scan(inputStr));
-        exp.accept(visitor);
-        return retVal;
+        return exp.accept(new JavascriptVisitor());
     }
 
     it('generates javascript identity function', () => {

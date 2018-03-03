@@ -9,12 +9,10 @@ const {JavascriptVisitor} = require('./jsTranspiler');
  * @returns {string}
  */
 function compileToJs(str) {
-    let retVal = '';
-    const visitor = new JavascriptVisitor(s => retVal += s);
     const tokens = scan(str);
     const program = parse(tokens);
-    program.accept(visitor);
-    return retVal;
+    const visitor = new JavascriptVisitor();
+    return program.accept(visitor);
 }
 
 exports.compileToJs = compileToJs;
