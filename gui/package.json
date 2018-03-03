@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server",
+    "test": "mocha"
   },
   "devDependencies": {
     "html-webpack-plugin": "^2.30.1",
