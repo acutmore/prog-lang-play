@@ -107,7 +107,7 @@ function primary(it) {
         return new VariableExpression(id);
     }
     const literal = expect(Literal, it.advance());
-    return church_numeral(Number.parseInt(literal.value, 10));
+    return church_numeral(Number.parseInt(literal.value, 10), literal);
 }
 
 /**
@@ -147,10 +147,10 @@ function test(expectedType, token) {
 /**
  * De-sugars a number into a church numerial
  * @param {number} value
+ * @param {{line: number, col: number}} pos
  * @returns {Expression}
  */
-function church_numeral(value) {
-    const pos = { line: 0, col: 0 };
+function church_numeral(value, pos) {
     const fVar = Token.Variable(pos, 'f');
     const xVar = Token.Variable(pos, 'x');
     const f = new VariableExpression(fVar);

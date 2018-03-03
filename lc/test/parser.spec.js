@@ -68,6 +68,25 @@ describe('parser', () => {
         );
     });
 
+    it(`numeric literals de-sugaring to Church numeral retains token position`, () => {
+        const input = `someFunction 0`;
+        const pos = { line: 1, col: input.indexOf('0') + 1 };
+        const tree = parse(scan(input));
+        const expected = new ApplyExpression(
+            new VariableExpression(
+                Variable({line: 1, col: 1}, 'someFunction')
+            ),
+            new FunctionExpression(
+                Variable(pos, 'f'),
+                new FunctionExpression(
+                    Variable(pos, 'x'),
+                    new VariableExpression(Variable(pos, 'x'))
+                )
+            )
+        );
+        deepStrictEqual(tree, expected);
+    });
+
     it('parses top level numeric apply', () => {
         const input = `someFunction 0`;
         const tree = parse(scan(input));
