@@ -2,12 +2,33 @@
 const timeoutMs = 10 * 1000;
 
 const workerScript = (function(){
-    self.onmessage=function(event) {
-        const toRun = event.data;
-        const program = new Function(`return (${toRun})`);
-        const result = program();
-        postMessage(result.toString());
+    function sandboxScript(script) {
+        const illegalChars = `\`[]."'{}+-*`;
+        const lookUp = new RegExp(
+            `[${illegalChars.split('').map(v => `\\${v}`).join('')}]`
+        , 'g');
+
+        if (lookUp.test(script)) {
+            throw new Error(`script contains illegal characters: ${illegalChars}`);
+        }
+
+        return `
+            with (trap) {
+                return (${script});
+            }
+        `;
     }
+
+    self.onmessage=function(event) {
+        const trap = new Proxy({}, {
+            has: () => true,
+            get: () => (f => x => x)
+        });
+        const functionBody = sandboxScript(event.data);
+        const program = new Function('trap', functionBody);
+        const result = program(trap);
+        postMessage(result.toString());
+    };
 }).toString().slice('function() {'.length, -1);
 
 function evaluateScript(script) {
