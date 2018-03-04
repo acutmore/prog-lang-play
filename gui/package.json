@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "build": "webpack",
     "start": "webpack-dev-server",
     "test": "mocha"
   },
