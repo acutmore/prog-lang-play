@@ -19,6 +19,10 @@ const workerScript = (function(){
         `;
     }
 
+    function churchNumerialToNumber(cn) {
+        return cn(acc => acc + 1)(0);
+    }
+
     self.onmessage=function(event) {
         const trap = new Proxy({}, {
             has: () => true,
@@ -27,7 +31,10 @@ const workerScript = (function(){
         const functionBody = sandboxScript(event.data);
         const program = new Function('trap', functionBody);
         const result = program(trap);
-        postMessage(result.toString());
+        postMessage({
+            result: result.toString(),
+            number: churchNumerialToNumber(result)
+        });
     };
 }).toString().slice('function() {'.length, -1);
 
