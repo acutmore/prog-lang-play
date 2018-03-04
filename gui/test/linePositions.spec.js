@@ -35,6 +35,14 @@ describe('linePositions', () => {
         );
     });
 
+    it('returns the end when the start index is beyond the bounds', () => {
+        const {start} = linePositions(src, 1000, -1);
+        deepStrictEqual(
+            start,
+            { line: 2, col: 7 }
+        );
+    });
+
     it('returns the end when the end index is beyond the bounds', () => {
         const {end} = linePositions(src, -1, 10000);
         deepStrictEqual(

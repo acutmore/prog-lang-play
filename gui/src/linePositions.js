@@ -34,6 +34,10 @@ function linePositions(inStr, startIndex, endIndex) {
             currentCol = 1;
         }
     }
+    if (startIndex >= inStr.length) {
+        startLine = currentLine;
+        startCol = currentCol - 1;
+    }
     if (endIndex >= inStr.length) {
         endLine = currentLine;
         endCol = currentCol - 1;
