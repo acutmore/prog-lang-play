@@ -23,3 +23,14 @@ node ./lc/repl.js | node -i
 ((a => (a))(Array))
 [Function: Array]
 ```
+
+# 'GUI' directory
+
+A simple website which allows a user to enter 'lc', see the generated javascript, run the program and see the result
+
+```bash
+cd gui
+npm install
+npm start
+open http://localhost:8080
+```
