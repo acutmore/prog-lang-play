@@ -5,6 +5,7 @@
   - Data structures are imutable (or at least by default)
   - Variables are imutable (or at least by default)
   - Why? FP limits scope of complexity for reader. Easier (for me) to spike an idea in imperitive code
+  - ref: http://cell-lang.net/ has same idea
 
 ```
 // Reverse is pure (the compiler could memoize it)
@@ -15,7 +16,7 @@ reverse is \list ->
     // r_list is mutable while in here
 
     list >> \v i ->
-        r_list[-i] := v 
+        r_list[-i] := v
     .
 
     // aways returns last statement
@@ -30,5 +31,5 @@ reverse is \list ->
 // @identifier results in the parameter being auto supplied
 // by the file 'add.baa'
 
-\ @add . n . add n n 
+\ @add . n . add n n
 ```
