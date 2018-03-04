@@ -12,7 +12,7 @@ function compileWithHighlight(input, start, end) {
     return program.accept(new JsHighlighter(shiftedStart, end));
 }
 
-input.onkeyup = () => {
+function processInput() {
     const inStr = input.value;
     const {start, end} = linePositions(inStr, input.selectionStart, input.selectionEnd);
 
@@ -26,7 +26,12 @@ input.onkeyup = () => {
             output.innerText = `! Unexpected error`;
         }
     }
-};
+}
+
+input.onkeyup = processInput;
+input.onchange = processInput;
+document.onselectionchange = processInput;
+window.onselectionchange = processInput;
 
 evalButton.onclick = () => {
     evaluateScript(output.innerText).then(console.log, console.error);
