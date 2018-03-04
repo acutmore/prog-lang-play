@@ -1,8 +1,10 @@
 const input = document.getElementById('input');
 const output = document.getElementById('output');
+const evalButton = document.getElementById('eval-output');
 const {frontend} = require('../../lc');
 const JsHighlighter = require('./jsHighlightTranspiler').jsHighlightTranspiler;
 const {linePositions, shiftToTokenStart} = require('./linePositions');
+const {evaluateScript} = require('./outputEvaluator');
 
 function compileWithHighlight(input, start, end) {
     const program = frontend(input);
@@ -24,4 +26,8 @@ input.onkeyup = () => {
             output.innerText = `! Unexpected error`;
         }
     }
+};
+
+evalButton.onclick = () => {
+    evaluateScript(output.innerText).then(console.log, console.error);
 };
