@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+  <title>Language Playground</title>
+</head>
+<body>
+  <style>
+    html, body {
+      width: 100vw;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: grid;
+      grid-template-rows: [header-start] 50px [main-start] auto;
+      grid-template-columns: [left] minmax(400px, 2fr) [middle] minmax(400px, 2fr) [right];
+    }
+
+    header {
+      grid-row: header-start / main-start;
+      grid-column: left / right;
+    }
+
+    langinput{
+      grid-row: main-start;
+      grid-column: left / middle;
+    }
+
+    langoutput{
+      grid-row: main-start;
+      grid-column: middle / right;
+    }
+
+    .expand {
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+    }
+
+    #output {
+      white-space: pre-wrap;
+    }
+
+    #output > b {
+      font-size: larger;
+    }
+  </style>
+  <header>Language Playground <button type="button" id="eval-output">Evaluate output</button></header>
+  <langinput><textarea id="input" class="expand">Type here</textarea></langinput>
+  <langoutput><pre id="output">Results appear here</pre></langoutput>
+<script type="text/javascript" src="bundle.js"></script></body>
+</html>
