@@ -6,6 +6,7 @@ const {Token} = require('./scanner');
 class Expression {
     /**
      * @param {ExpressionVisitor} visitor
+     * @returns {Semigroup}
      */
     accept(visitor) {
         return visitor.empty();
@@ -26,7 +27,7 @@ class ExpressionVisitor {
      * @param {ProgramExpression} pe
      */
     visitProgram(pe) {
-        return this.e;
+        return pe.body.accept(this);
     }
     /**
      * @param {VariableExpression} ve
@@ -38,13 +39,15 @@ class ExpressionVisitor {
      * @param {FunctionExpression} fe
      */
     visitFunction(fe) {
-        return this.e;
+        return fe.body.accept(this);
     }
     /**
      * @param {ApplyExpression} ae
      */
     visitApplication(ae) {
-        return this.e;
+        const l = ae.left.accept(this);
+        const r = ae.right.accept(this);
+        return l.concat(r);
     }
 }
 

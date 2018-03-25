@@ -39,11 +39,11 @@ function* cleanScan(src) {
 }
 
 /**
- * @augments ExpressionVisitor<void>
+ * @augments ExpressionVisitor<{ concat(): any }>
  */
  class StdLibAccessFinder extends ExpressionVisitor {
     constructor() {
-        super(void 0);
+        super({ concat() { return this } });
         /** @type {Set<keyof typeof stdLib>} */
         this.requiredFunctions = new Set();
     }
@@ -56,15 +56,7 @@ function* cleanScan(src) {
         }
     }
     /**
-     * @param {ProgramExpression} pe
-     * @returns {void}
-     */
-    visitProgram(pe) {
-        pe.body.accept(this);
-    }
-    /**
      * @param {VariableExpression} ve
-     * @returns {void}
      */
     visitVariable(ve) {
         const id = ve.id.value;
@@ -73,21 +65,7 @@ function* cleanScan(src) {
                 this.requiredFunctions.add(id);
                 break;
         }
-    }
-    /**
-     * @param {FunctionExpression} fe
-     * @returns {void}
-     */
-    visitFunction(fe) {
-        fe.body.accept(this);
-    }
-    /**
-     * @param {ApplyExpression} ae
-     * @returns {void}
-     */
-    visitApplication(ae) {
-        ae.left.accept(this);
-        ae.right.accept(this);
+        return this.empty();
     }
 }
 

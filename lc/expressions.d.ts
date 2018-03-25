@@ -2,10 +2,17 @@
 
 import {Token} from './scanner';
 
+declare global {
+    interface Semigroup{
+        /** {s} must be of the same type as {this} */
+        concat(s: Semigroup): Semigroup;
+    }
+}
+
 declare module "./expressions.js" {
 
     class Expression {
-        accept<T>(visitor: ExpressionVisitor<T>): T;
+        accept<T extends Semigroup>(visitor: ExpressionVisitor<T>): T;
     }
 
     class ProgramExpression extends Expression {
@@ -24,7 +31,7 @@ declare module "./expressions.js" {
         constructor(public left: Expression, public right: Expression);
     }
 
-    class ExpressionVisitor<T> {
+    class ExpressionVisitor<T extends Semigroup> {
         constructor(empty: T);
         empty(): T;
         visitProgram(pe: ProgramExpression): T;
