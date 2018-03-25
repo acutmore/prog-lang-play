@@ -6,8 +6,10 @@
 - [x] Lamda Calculus to Javascript transpiler
 - [x] Add syntatic sugar for numeric literals
 - [x] Add syntatic sugar for 'let' expressions
+- [ ] Add syntatic sugar for recursive 'letrec' expressions
 - [ ] Add syntatic sugar for if-then-else expressions
 - [ ] Add syntatic sugar for lists
+- [ ] Include a standard lib for common functions
 - [ ] Implement LC bytecode virtual machine
 - [ ] Compiler bytecode backend
 
