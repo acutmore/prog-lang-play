@@ -4,6 +4,7 @@
 const {scan} = require('./scanner');
 const {parse} = require('./parser');
 const {Expression} = require('./expressions');
+const {addStdLib} = require('./stdLib');
 const {JavascriptVisitor} = require('./jsTranspiler');
 
 /**
@@ -12,7 +13,8 @@ const {JavascriptVisitor} = require('./jsTranspiler');
  */
 function frontend(str) {
     const tokens = scan(str);
-    return parse(tokens);
+    const ast = parse(tokens);
+    return addStdLib(ast);
 }
 
 /**

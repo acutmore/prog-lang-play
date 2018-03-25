@@ -9,7 +9,8 @@
 - [ ] Add syntatic sugar for recursive 'letrec' expressions
 - [ ] Add syntatic sugar for if-then-else expressions
 - [ ] Add syntatic sugar for lists
-- [ ] Include a standard lib for common functions
+- [x] Lazily include a standard lib for common functions
+- [ ] Expand standard lib
 - [ ] Implement LC bytecode virtual machine
 - [ ] Compiler bytecode backend
 
