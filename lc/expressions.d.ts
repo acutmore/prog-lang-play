@@ -8,6 +8,10 @@ declare module "./expressions.js" {
         accept<T>(visitor: ExpressionVisitor<T>): T;
     }
 
+    class ProgramExpression extends Expression {
+        constructor(public body: Expression);
+    }
+
     class VariableExpression extends Expression {
         constructor(public id: iToken);
     }
@@ -23,6 +27,7 @@ declare module "./expressions.js" {
     class ExpressionVisitor<T> {
         constructor(empty: T);
         empty(): T;
+        visitProgram(pe: ProgramExpression): T;
         visitVariable(ve: VariableExpression): T;
         visitFunction(fe: FunctionExpression): T;
         visitApplication(ae: ApplyExpression): T;

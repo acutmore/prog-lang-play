@@ -3,6 +3,7 @@
 
 const {
     ExpressionVisitor,
+    ProgramExpression,
     VariableExpression,
     FunctionExpression,
     ApplyExpression
@@ -14,6 +15,13 @@ const {
  class JavascriptVisitor extends ExpressionVisitor {
     constructor() {
         super("");
+    }
+    /**
+     * @param {ProgramExpression} pe
+     * @returns {string}
+     */
+    visitProgram(pe) {
+        return pe.body.accept(this);
     }
     /**
      * @param {VariableExpression} ve

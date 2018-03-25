@@ -4,7 +4,7 @@ const { Token, Tokens } = require('./scanner');
 const { PeekIterator } = require('./peekIterator');
 const { CompilerError } = require('./errors');
 const {
-    Expression, VariableExpression, FunctionExpression, ApplyExpression
+    Expression, ProgramExpression, VariableExpression, FunctionExpression, ApplyExpression
     } = require('./expressions');
 const {
     BracketOpen, BracketClose, Lambda, Dot,
@@ -31,7 +31,7 @@ const {
 function program(it) {
     const e = expression(it);
     expect(EOF, it.advance());
-    return e;
+    return new ProgramExpression(e);
 }
 
 /**

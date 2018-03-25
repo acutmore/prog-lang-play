@@ -23,6 +23,12 @@ class ExpressionVisitor {
         return this.e;
     }
     /**
+     * @param {ProgramExpression} pe
+     */
+    visitProgram(pe) {
+        return this.e;
+    }
+    /**
      * @param {VariableExpression} ve
      */
     visitVariable(ve) {
@@ -39,6 +45,23 @@ class ExpressionVisitor {
      */
     visitApplication(ae) {
         return this.e;
+    }
+}
+
+class ProgramExpression extends Expression {
+    /**
+     * @param {Expression} body
+     */
+    constructor(body) {
+        super();
+        this.body = body;
+    }
+
+    /**
+     * @param {ExpressionVisitor} visitor
+     */
+    accept(visitor) {
+        return visitor.visitProgram(this);
     }
 }
 
@@ -99,6 +122,7 @@ class ApplyExpression extends Expression {
 
 exports.Expression = Expression;
 exports.ExpressionVisitor = ExpressionVisitor;
+exports.ProgramExpression = ProgramExpression;
 exports.VariableExpression = VariableExpression;
 exports.FunctionExpression = FunctionExpression;
 exports.ApplyExpression = ApplyExpression;

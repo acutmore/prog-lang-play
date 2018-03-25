@@ -4,7 +4,9 @@ describe('parser', () => {
     const {scan, Token} = require('../scanner');
     const {parse} = require('../parser');
     const { BracketOpen, BracketClose, Lambda, Dot, Variable, EOF } = Token;
-    const { VariableExpression, FunctionExpression, ApplyExpression } = require('../expressions');
+    const {
+        ProgramExpression, VariableExpression, FunctionExpression, ApplyExpression
+        } = require('../expressions');
     const posFields = new Set(['line', 'col']);
     const p = { line: 0, col: 0 };
 
@@ -17,14 +19,16 @@ describe('parser', () => {
     it('parses pre-balanced', () => {
         const input = `((λx.x)(λy.y))`;
         const tree = parse(scan(input));
-        const expected = new ApplyExpression(
-            new FunctionExpression(
-                Variable(p, 'x'),
-                new VariableExpression(Variable(p, 'x'))
-            ),
-            new FunctionExpression(
-                Variable(p, 'y'),
-                new VariableExpression(Variable(p, 'y'))
+        const expected = new ProgramExpression(
+            new ApplyExpression(
+                new FunctionExpression(
+                    Variable(p, 'x'),
+                    new VariableExpression(Variable(p, 'x'))
+                ),
+                new FunctionExpression(
+                    Variable(p, 'y'),
+                    new VariableExpression(Variable(p, 'y'))
+                )
             )
         );
         deepStrictEqual(
@@ -72,15 +76,17 @@ describe('parser', () => {
         const input = `someFunction 0`;
         const pos = { line: 1, col: input.indexOf('0') + 1 };
         const tree = parse(scan(input));
-        const expected = new ApplyExpression(
-            new VariableExpression(
-                Variable({line: 1, col: 1}, 'someFunction')
-            ),
-            new FunctionExpression(
-                Variable(pos, 'f'),
+        const expected = new ProgramExpression(
+            new ApplyExpression(
+                new VariableExpression(
+                    Variable({line: 1, col: 1}, 'someFunction')
+                ),
                 new FunctionExpression(
-                    Variable(pos, 'x'),
-                    new VariableExpression(Variable(pos, 'x'))
+                    Variable(pos, 'f'),
+                    new FunctionExpression(
+                        Variable(pos, 'x'),
+                        new VariableExpression(Variable(pos, 'x'))
+                    )
                 )
             )
         );
@@ -90,15 +96,17 @@ describe('parser', () => {
     it('parses top level numeric apply', () => {
         const input = `someFunction 0`;
         const tree = parse(scan(input));
-        const expected = new ApplyExpression(
-            new VariableExpression(
-                Variable(p, 'someFunction')
-            ),
-            new FunctionExpression(
-                Variable(p, 'f'),
+        const expected = new ProgramExpression(
+            new ApplyExpression(
+                new VariableExpression(
+                    Variable(p, 'someFunction')
+                ),
                 new FunctionExpression(
-                    Variable(p, 'x'),
-                    new VariableExpression(Variable(p, 'x'))
+                    Variable(p, 'f'),
+                    new FunctionExpression(
+                        Variable(p, 'x'),
+                        new VariableExpression(Variable(p, 'x'))
+                    )
                 )
             )
         );
