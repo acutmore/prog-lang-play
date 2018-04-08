@@ -3,4 +3,8 @@ name = "lc-rust"
 version = "0.1.0"
 authors = ["Ashley Cutmore <acutmore@users.noreply.github.com>"]
 
+[lib]
+name = "lc"
+path = "src/lib.rs"
+
 [dependencies]
