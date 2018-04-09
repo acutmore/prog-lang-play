@@ -1,4 +1,5 @@
 use error::*;
+use regex::Regex;
 
 #[cfg(test)]
 mod tests {
@@ -67,15 +68,60 @@ pub fn scan(src: &str) -> Result<Vec<Token>, Error> {
     let mut v: Vec<Token> = Vec::new();
     let mut line: u16 = 1;
     let mut col: u16 = 0;
+    let mut chars = src.chars().peekable();
 
-    for c in src.chars() {
+    loop {
+        let c = chars.next();
+        if c.is_none() { break }
+        let c = c.unwrap();
         col = col + 1;
 
-        // TODO: check whitespace
+        if c == '\n' {
+            line = line + 1;
+            col = 0;
+            continue;
+        }
+        lazy_static! {
+            static ref WHITESPACE: Regex = Regex::new(r"\s").unwrap();
+        }
+        if WHITESPACE.is_match(&c.to_string()) {
+            continue;
+        }
+        lazy_static! {
+            static ref SYMBOL_HEAD: Regex = Regex::new(r"[_a-zA-Z]").unwrap();
+        }
+        lazy_static! {
+            static ref SYMBOL_TAIL: Regex = Regex::new(r"[_a-zA-Z0-9]").unwrap();
+        }
+        if SYMBOL_HEAD.is_match(&c.to_string()) {
+            let pos = SrcPosition { line, col };
+            let mut word = c.to_string();
+            loop {
+                match chars.peek() {
+                    None => break,
+                    Some(c) => if SYMBOL_TAIL.is_match(&c.to_string()) {
+                        word.push(*c);
+                        col = col + 1;
+                    } else {
+                        break;
+                    }
+                }
+                chars.next();
+            }
+            v.push(Token::Symbol(pos, word));
+            continue;
+        }
 
-        // TODO: check symbol
-
-        // TODO: check tokens
+        let pos = SrcPosition { line, col };
+        let t = match c {
+            '(' => Token::BracketOpen(pos),
+            ')' => Token::BracketClose(pos),
+            'λ' => Token::Lambda(pos),
+            '\\' => Token::Lambda(pos),
+            '.' => Token::Dot(pos),
+            _ => Token::EOF(pos), // TODO: ERROR
+        };
+        v.push(t);
     }
 
     v.push(Token::EOF(SrcPosition { line, col: col + 1 }));

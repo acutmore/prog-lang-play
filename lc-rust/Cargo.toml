@@ -8,3 +8,5 @@ name = "lc"
 path = "src/lib.rs"
 
 [dependencies]
+lazy_static = "1.0.0"
+regex = "0.2"
