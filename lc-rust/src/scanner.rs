@@ -41,6 +41,14 @@ mod tests {
         );
     }
 
+    #[test]
+    fn it_produces_an_error() {
+        assert_eq!(
+            scan("!").unwrap_err().msg,
+            "Unexpected character: !"
+        );
+    }
+
     fn pos(line: u16, col: u16) -> SrcPosition {
         SrcPosition { line, col }
     }
@@ -119,7 +127,9 @@ pub fn scan(src: &str) -> Result<Vec<Token>, Error> {
             'λ' => Token::Lambda(pos),
             '\\' => Token::Lambda(pos),
             '.' => Token::Dot(pos),
-            _ => Token::EOF(pos), // TODO: ERROR
+            _ => return Err(Error {
+                msg: format!("Unexpected character: {}", c)
+            }),
         };
         v.push(t);
     }
