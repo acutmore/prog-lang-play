@@ -2,6 +2,7 @@ extern crate regex;
 #[macro_use] extern crate lazy_static;
 mod error;
 mod scanner;
+mod syntax;
 
 use error::*;
 
