@@ -3,6 +3,7 @@ extern crate regex;
 mod error;
 mod scanner;
 mod syntax;
+mod grammar;
 
 use error::*;
 

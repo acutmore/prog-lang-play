@@ -36,11 +36,11 @@ mod tests {
 }
 
 pub struct SymbolInfo {
-    id: String,
+    pub id: String,
 }
 
 impl SymbolInfo {
-    fn new<S: Into<String>>(id: S) -> SymbolInfo{
+    pub fn new<S: Into<String>>(id: S) -> SymbolInfo{
         SymbolInfo { id: id.into() }
     }
 }
