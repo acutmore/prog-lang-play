@@ -4,6 +4,7 @@ mod error;
 mod scanner;
 mod syntax;
 mod grammar;
+mod emit_js;
 
 use error::*;
 
