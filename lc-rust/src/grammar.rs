@@ -131,41 +131,40 @@ fn primary(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
 // get_lamb -> `λ` VAR `.` expression .
 fn get_lamb(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     match it.next() {
-        Some(Token::Lambda(_)) => {
-            match it.next() {
-                Some(Token::Symbol(_, s)) => {
-                    match it.next() {
-                        Some(Token::Dot(_)) => expression(it).map(|body|
-                            Box::new(Expression::Function(
-                                SymbolInfo::new(s),
-                                body
-                            ))
-                        ),
-                        _ => Err(Error { msg: "expected dot".to_string() }),
-                    }
-                },
-                _ => Err(Error { msg: "expected symbol".to_string() }),
-            }
-        }
+        Some(Token::Lambda(_)) => Ok(()),
         _ => Err(Error { msg: "expected lamba".to_string() }),
-    }
+    }?;
+
+    let param = match it.next() {
+        Some(Token::Symbol(_, s)) => Ok(s),
+        _ => Err(Error { msg: "expected symbol".to_string() }),
+    }?;
+
+    match it.next() {
+        Some(Token::Dot(_)) => Ok(()),
+        _ => Err(Error { msg: "expected dot".to_string() }),
+    }?;
+
+    let body = expression(it)?;
+    Ok(Box::new(Expression::Function(
+        SymbolInfo::new(param),
+        body
+    )))
 }
 
 // get_bracket_expression -> '(' expression ')' .
 fn get_bracket_expression(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     match it.next() {
-        Some(Token::BracketOpen(_)) => {
-            let e = expression(it)?;
-            match it.peek() {
-                Some(&Token::BracketClose(_)) => {
-                    it.next();
-                    Ok(e)
-                },
-                _ => Err(Error { msg: "expected ')'".to_string() }),
-            }
-        }
+        Some(Token::BracketOpen(_)) => Ok(()),
         _ => Err(Error { msg: "expected '('".to_string() }),
-    }
+    }?;
+    let e = expression(it)?;
+    match it.peek() {
+        Some(&Token::BracketClose(_)) => Ok(()),
+        _ => Err(Error { msg: "expected ')'".to_string() }),
+    }?;
+    it.next();
+    Ok(e)
 }
 
 // get_symbol -> VAR
