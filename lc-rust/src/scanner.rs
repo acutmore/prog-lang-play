@@ -45,7 +45,7 @@ mod tests {
     fn it_produces_an_error() {
         assert_eq!(
             scan("!").unwrap_err().msg,
-            "Unexpected character: !"
+            "Unexpected character: '!'"
         );
     }
 
@@ -128,7 +128,7 @@ pub fn scan(src: &str) -> Result<Vec<Token>, Error> {
             '\\' => Token::Lambda(pos),
             '.' => Token::Dot(pos),
             _ => return Err(Error {
-                msg: format!("Unexpected character: {}", c)
+                msg: format!("Unexpected character: '{}'", c)
             }),
         };
         v.push(t);

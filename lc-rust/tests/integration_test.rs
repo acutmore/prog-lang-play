@@ -5,7 +5,7 @@ extern crate lc;
 fn it_produces_unexpected_token_error() {
     assert_eq!(
         lc::transpile_js("((λi . i)(λt % t))").unwrap_err().msg,
-        "unexpected token '%'"
+        "Unexpected character: '%'"
     );
 }
 
