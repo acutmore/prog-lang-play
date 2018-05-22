@@ -65,14 +65,16 @@ mod tests {
 
 use syntax::*;
 use scanner::Token;
+use scanner::SrcPosition;
+use scanner::SrcToken;
 use error::*;
 use std::iter;
 use std::vec;
 
-type TokenIt = vec::IntoIter<Token>;
+type TokenIt = vec::IntoIter<SrcToken>;
 type PeekableTokens = iter::Peekable<TokenIt>;
 
-pub fn parse(tokens: Vec<Token>) -> Result<Box<Expression>, Error> {
+pub fn parse(tokens: Vec<SrcToken>) -> Result<Box<Expression>, Error> {
     let mut it = tokens.into_iter().peekable();
     program(&mut it)
 }
@@ -81,8 +83,9 @@ pub fn parse(tokens: Vec<Token>) -> Result<Box<Expression>, Error> {
 fn program(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     let e = expression(it)?;
     match it.peek() {
-        Some(&Token::EOF(_)) => Ok(e),
-        _ => Err(Error { msg: "expected EOF".to_string() }),
+        None
+        | Some(&SrcToken(Token::EOF, _)) => Ok(e),
+        Some(&SrcToken(_, ref pos)) => Err(Error { msg: "expected EOF".to_string(), at: *pos, }),
     }
 }
 
@@ -96,9 +99,9 @@ fn apply(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     let mut e = lamb(it)?;
     loop {
         match it.peek() {
-            Some(&Token::BracketClose(_)) |
-            Some(&Token::Dot(_)) |
-            Some(&Token::EOF(_)) => return Ok(e),
+            Some(&SrcToken(Token::BracketClose, _))
+            | Some(&SrcToken(Token::Dot, _))
+            | Some(&SrcToken(Token::EOF, _)) => return Ok(e),
             _ => {
                 e = Box::new(Expression::Application(
                     e,
@@ -113,7 +116,7 @@ fn apply(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
 // lamb -> prmary .
 fn lamb(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     match it.peek() {
-        Some(&Token::Lambda(_)) => get_lamb(it),
+        Some(&SrcToken(Token::Lambda, _)) => get_lamb(it),
         _ => primary(it),
     }
 }
@@ -121,47 +124,78 @@ fn lamb(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
 // primary -> '(' expression ')' .
 // primary -> VAR .
 fn primary(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
-    match it.peek() {
-        Some(&Token::BracketOpen(_)) => get_bracket_expression(it),
-        Some(&Token::Symbol(_, _)) => get_symbol(it),
-        _ => Err(Error { msg: "expected '(' or a symbol".to_string() }),
+    enum PrimaryType {
+        Bracket,
+        Symbol,
+        Error(SrcPosition)
+    };
+
+    let primary_type = match it.peek() {
+        Some(&SrcToken(Token::BracketOpen, _)) => PrimaryType::Bracket,
+        Some(&SrcToken(Token::Symbol(_), _)) => PrimaryType::Symbol,
+        Some(&SrcToken(_, ref pos)) => PrimaryType::Error(*pos),
+        None => panic!("there should always be another token to peek at"),
+    };
+
+    match primary_type {
+        PrimaryType::Bracket => get_bracket_expression(it),
+        PrimaryType::Symbol => get_symbol(it),
+        PrimaryType::Error(ref pos) => Err(Error {
+            msg: "expected '(' or a symbol".to_string(),
+            at: *pos,
+        }),
     }
 }
 
 // get_lamb -> `λ` VAR `.` expression .
 fn get_lamb(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
-    match it.next() {
-        Some(Token::Lambda(_)) => Ok(()),
-        _ => Err(Error { msg: "expected lamba".to_string() }),
+    match it.next().unwrap() {
+        SrcToken(Token::Lambda, _) => Ok(()),
+        SrcToken(_, pos) => Err(Error {
+            msg: "expected lamba".to_string(),
+            at: pos,
+        }),
     }?;
 
-    let param = match it.next() {
-        Some(Token::Symbol(_, s)) => Ok(s),
-        _ => Err(Error { msg: "expected symbol".to_string() }),
+    let param = match it.next().unwrap() {
+        SrcToken(Token::Symbol(s), _) => Ok(s),
+        SrcToken(_, pos) => Err(Error {
+            msg: "expected symbol".to_string(),
+            at: pos,
+        }),
     }?;
 
-    match it.next() {
-        Some(Token::Dot(_)) => Ok(()),
-        _ => Err(Error { msg: "expected dot".to_string() }),
+    match it.next().unwrap() {
+        SrcToken(Token::Dot, _) => Ok(()),
+        SrcToken(_, pos) => Err(Error {
+            msg: "expected dot".to_string(),
+            at: pos,
+        }),
     }?;
 
     let body = expression(it)?;
     Ok(Box::new(Expression::Function(
         SymbolInfo::new(param),
-        body
+        body,
     )))
 }
 
 // get_bracket_expression -> '(' expression ')' .
 fn get_bracket_expression(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
-    match it.next() {
-        Some(Token::BracketOpen(_)) => Ok(()),
-        _ => Err(Error { msg: "expected '('".to_string() }),
+    match it.next().unwrap() {
+        SrcToken(Token::BracketOpen, _) => Ok(()),
+        SrcToken(_, pos) => Err(Error {
+            msg: "expected '('".to_string(),
+            at: pos,
+        }),
     }?;
     let e = expression(it)?;
-    match it.peek() {
-        Some(&Token::BracketClose(_)) => Ok(()),
-        _ => Err(Error { msg: "expected ')'".to_string() }),
+    match it.peek().unwrap() {
+        &SrcToken(Token::BracketClose, _) => Ok(()),
+        SrcToken(_, ref pos) => Err(Error {
+            msg: "expected ')'".to_string(),
+            at: *pos,
+        }),
     }?;
     it.next();
     Ok(e)
@@ -169,11 +203,14 @@ fn get_bracket_expression(it: &mut PeekableTokens) -> Result<Box<Expression>, Er
 
 // get_symbol -> VAR
 fn get_symbol(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
-    match it.next() {
-        Some(Token::Symbol(_, s)) =>
+    match it.next().unwrap() {
+        SrcToken(Token::Symbol(s), _) =>
             Ok(Box::new(Expression::Symbol(
                 SymbolInfo::new(s),
             ))),
-        _  => Err(Error { msg: "expected a symbol".to_string() }),
+        SrcToken(_, pos) => Err(Error {
+            msg: "expected a symbol".to_string(),
+            at: pos,
+        }),
     }
 }

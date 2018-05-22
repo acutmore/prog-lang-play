@@ -10,7 +10,7 @@ mod tests {
     fn it_scans_empty() {
         assert_eq!(
             scan("").unwrap(),
-            vec![EOF(pos(1, 1))],
+            vec![SrcToken(EOF, pos(1, 1))],
         );
     }
 
@@ -18,7 +18,7 @@ mod tests {
     fn it_scans_mutiple_lines() {
         assert_eq!(
             scan("  (  \n  )  ").unwrap(),
-            vec![BracketOpen(pos(1, 3)), BracketClose(pos(2, 3)), EOF(pos(2, 6))],
+            vec![SrcToken(BracketOpen, pos(1, 3)), SrcToken(BracketClose, pos(2, 3)), SrcToken(EOF, pos(2, 6))],
         );
     }
 
@@ -26,9 +26,9 @@ mod tests {
     fn it_scans_simple_function() {
         assert_eq!(
             scan("λa.b").unwrap(),
-            vec![Lambda(pos(1, 1)), Symbol(pos(1, 2), "a".to_string()),
-                Dot(pos(1, 3)), Symbol(pos(1, 4), "b".to_string()),
-                EOF(pos(1, 5))
+            vec![SrcToken(Lambda, pos(1, 1)), SrcToken(Symbol("a".to_string()), pos(1, 2)),
+                SrcToken(Dot, pos(1, 3)), SrcToken(Symbol("b".to_string()), pos(1, 4)),
+                SrcToken(EOF, pos(1, 5))
             ],
         );
     }
@@ -37,7 +37,7 @@ mod tests {
     fn it_scans_camel_case_symbol() {
         assert_eq!(
             scan("camelCase").unwrap(),
-            vec![Symbol(pos(1,1), "camelCase".to_string()), EOF(pos(1, 10))],
+            vec![SrcToken(Symbol("camelCase".to_string()), pos(1,1)), SrcToken(EOF, pos(1, 10))],
         );
     }
 
@@ -49,6 +49,14 @@ mod tests {
         );
     }
 
+    #[test]
+    fn it_includes_position_in_errors() {
+        assert_eq!(
+            scan("!").unwrap_err().at,
+            pos(1, 1)
+        );
+    }
+
     fn pos(line: u16, col: u16) -> SrcPosition {
         SrcPosition { line, col }
     }
@@ -56,24 +64,32 @@ mod tests {
 
 #[derive(PartialEq)]
 #[derive(Debug)]
+pub struct SrcToken (
+    pub Token,
+    pub SrcPosition,
+);
+
+#[derive(PartialEq)]
+#[derive(Debug)]
 pub enum Token {
-    Lambda(SrcPosition),
-    Dot(SrcPosition),
-    BracketOpen(SrcPosition),
-    BracketClose(SrcPosition),
-    Symbol(SrcPosition, String),
-    EOF(SrcPosition),
+    Lambda,
+    Dot,
+    BracketOpen,
+    BracketClose,
+    Symbol(String),
+    EOF,
 }
 
 #[derive(PartialEq)]
 #[derive(Debug)]
+#[derive(Clone, Copy)]
 pub struct SrcPosition {
     line: u16,
     col: u16,
 }
 
-pub fn scan(src: &str) -> Result<Vec<Token>, Error> {
-    let mut v: Vec<Token> = Vec::new();
+pub fn scan(src: &str) -> Result<Vec<SrcToken>, Error> {
+    let mut v: Vec<SrcToken> = Vec::new();
     let mut line: u16 = 1;
     let mut col: u16 = 0;
     let mut chars = src.chars().peekable();
@@ -116,24 +132,25 @@ pub fn scan(src: &str) -> Result<Vec<Token>, Error> {
                 }
                 chars.next();
             }
-            v.push(Token::Symbol(pos, word));
+            v.push(SrcToken(Token::Symbol(word), pos));
             continue;
         }
 
         let pos = SrcPosition { line, col };
         let t = match c {
-            '(' => Token::BracketOpen(pos),
-            ')' => Token::BracketClose(pos),
-            'λ' => Token::Lambda(pos),
-            '\\' => Token::Lambda(pos),
-            '.' => Token::Dot(pos),
+            '(' => Token::BracketOpen,
+            ')' => Token::BracketClose,
+            'λ' => Token::Lambda,
+            '\\' => Token::Lambda,
+            '.' => Token::Dot,
             _ => return Err(Error {
-                msg: format!("Unexpected character: '{}'", c)
+                msg: format!("Unexpected character: '{}'", c),
+                at: pos,
             }),
         };
-        v.push(t);
+        v.push(SrcToken(t, pos));
     }
 
-    v.push(Token::EOF(SrcPosition { line, col: col + 1 }));
+    v.push(SrcToken(Token::EOF, SrcPosition { line, col: col + 1 }));
     Ok(v)
 }
