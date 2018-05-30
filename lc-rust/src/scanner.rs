@@ -84,8 +84,8 @@ pub enum Token {
 #[derive(Debug)]
 #[derive(Clone, Copy)]
 pub struct SrcPosition {
-    line: u16,
-    col: u16,
+    pub line: u16,
+    pub col: u16,
 }
 
 pub fn scan(src: &str) -> Result<Vec<SrcToken>, Error> {
