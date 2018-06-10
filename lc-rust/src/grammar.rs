@@ -7,6 +7,7 @@
  * lamb -> primary .
  * primary -> `(` expression `)` .
  * primary -> VAR .
+ * primary -> INT .
  *
  * Grammar is implemented in a recursive decent style
  */
@@ -59,6 +60,14 @@ mod tests {
         assert_eq!(
             parse(scan("m n p").unwrap()).unwrap().accept(&PrettyPrinter {}),
             "Apply(Apply(Symbol(m), Symbol(n)), Symbol(p))",
+        );
+    }
+
+    #[test]
+    fn it_has_syntatic_sugar_for_int_literal() {
+        assert_eq!(
+            parse(scan("1").unwrap()).unwrap().accept(&PrettyPrinter {}),
+            "Func(f){Func(x){Apply(Symbol(f), Symbol(x))}}",
         );
     }
 }
@@ -123,16 +132,19 @@ fn lamb(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
 
 // primary -> '(' expression ')' .
 // primary -> VAR .
+// primary -> INT .
 fn primary(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     enum PrimaryType {
         Bracket,
         Symbol,
+        Int,
         Error(SrcPosition)
     };
 
     let primary_type = match it.peek() {
         Some(&SrcToken(Token::BracketOpen, _)) => PrimaryType::Bracket,
         Some(&SrcToken(Token::Symbol(_), _)) => PrimaryType::Symbol,
+        Some(&SrcToken(Token::Integer(_), _)) => PrimaryType::Int,
         Some(&SrcToken(_, ref pos)) => PrimaryType::Error(*pos),
         None => panic!("there should always be another token to peek at"),
     };
@@ -140,6 +152,7 @@ fn primary(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     match primary_type {
         PrimaryType::Bracket => get_bracket_expression(it),
         PrimaryType::Symbol => get_symbol(it),
+        PrimaryType::Int => get_church_numeral(it),
         PrimaryType::Error(ref pos) => Err(Error {
             msg: "expected '(' or a symbol".to_string(),
             at: *pos,
@@ -210,6 +223,50 @@ fn get_symbol(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
             ))),
         SrcToken(_, pos) => Err(Error {
             msg: "expected a symbol".to_string(),
+            at: pos,
+        }),
+    }
+}
+
+fn access_symbol(symbol: &str) -> Box<Expression> {
+    Box::new(Expression::Symbol(
+        SymbolInfo::new(symbol.to_string())
+    ))
+}
+
+fn introduce_symbol(symbol: &str) -> SymbolInfo {
+    SymbolInfo::new(symbol.to_string())
+}
+
+/// Given a token iterator parked before an integer literal
+/// will consume and return the coresponding church numeral
+/// e.g.
+/// 0 == λf.λx.x,
+/// 1 == λf.λx.fx,
+/// 2 == λf.λx.ffx,
+fn get_church_numeral(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
+    match it.next().unwrap() {
+        SrcToken(Token::Integer(int_value), _) => {
+            let mut body = access_symbol("x");
+            // Apply f to x int_value times
+            for _ in 0..int_value {
+                body = Box::new(Expression::Application(
+                    access_symbol("f"),
+                    body
+                ));
+            }
+            Ok(Box::new(
+                Expression::Function(
+                    introduce_symbol("f"),
+                    Box::new(Expression::Function(
+                        introduce_symbol("x"),
+                        body
+                    ))
+                )
+            ))
+        },
+        SrcToken(_, pos) => Err(Error {
+            msg: "expected an integer literal".to_string(),
             at: pos,
         }),
     }
