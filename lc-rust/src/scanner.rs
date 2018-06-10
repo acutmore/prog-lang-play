@@ -42,6 +42,14 @@ mod tests {
     }
 
     #[test]
+    fn it_scans_integers() {
+        assert_eq!(
+            scan("123456").unwrap(),
+            vec![SrcToken(Integer(123456), pos(1,1)), SrcToken(EOF, pos(1, 7))],
+        );
+    }
+
+    #[test]
     fn it_produces_an_error() {
         assert_eq!(
             scan("!").unwrap_err().msg,
@@ -77,6 +85,7 @@ pub enum Token {
     BracketOpen,
     BracketClose,
     Symbol(String),
+    Integer(u32),
     EOF,
 }
 
@@ -111,6 +120,30 @@ pub fn scan(src: &str) -> Result<Vec<SrcToken>, Error> {
         if WHITESPACE.is_match(&c.to_string()) {
             continue;
         }
+
+        lazy_static! {
+            static ref INTEGER: Regex = Regex::new(r"[0-9]").unwrap();
+        }
+        if INTEGER.is_match(&c.to_string()) {
+            let pos = SrcPosition { line, col };
+            let mut int_literal = c.to_string();
+            loop {
+                match chars.peek() {
+                    None => break,
+                    Some(c) => if INTEGER.is_match(&c.to_string()) {
+                        int_literal.push(*c);
+                        col = col + 1;
+                    } else {
+                        break;
+                    }
+                }
+                chars.next();
+            }
+            let numeric_value = int_literal.parse::<u32>().unwrap();
+            v.push(SrcToken(Token::Integer(numeric_value), pos));
+            continue;
+        }
+
         lazy_static! {
             static ref SYMBOL_HEAD: Regex = Regex::new(r"[_a-zA-Z]").unwrap();
         }
