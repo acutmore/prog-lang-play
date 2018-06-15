@@ -6,6 +6,7 @@
  * lamb -> `λ` VAR `.` apply .
  * lamb -> primary .
  * primary -> `(` expression `)` .
+ * primary -> `let` VAR `=` expression `in` expression .
  * primary -> VAR .
  * primary -> INT .
  *
@@ -110,6 +111,7 @@ fn apply(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
         match it.peek() {
             Some(&SrcToken(Token::BracketClose, _))
             | Some(&SrcToken(Token::Dot, _))
+            | Some(&SrcToken(Token::In, _))
             | Some(&SrcToken(Token::EOF, _)) => return Ok(e),
             _ => {
                 e = Box::new(Expression::Application(
@@ -131,11 +133,13 @@ fn lamb(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
 }
 
 // primary -> '(' expression ')' .
+// primary -> `let` VAR `=` expression `in` expression .
 // primary -> VAR .
 // primary -> INT .
 fn primary(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     enum PrimaryType {
         Bracket,
+        Let,
         Symbol,
         Int,
         Error(SrcPosition)
@@ -143,6 +147,7 @@ fn primary(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
 
     let primary_type = match it.peek() {
         Some(&SrcToken(Token::BracketOpen, _)) => PrimaryType::Bracket,
+        Some(&SrcToken(Token::Let, _)) => PrimaryType::Let,
         Some(&SrcToken(Token::Symbol(_), _)) => PrimaryType::Symbol,
         Some(&SrcToken(Token::Integer(_), _)) => PrimaryType::Int,
         Some(&SrcToken(_, ref pos)) => PrimaryType::Error(*pos),
@@ -151,6 +156,7 @@ fn primary(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
 
     match primary_type {
         PrimaryType::Bracket => get_bracket_expression(it),
+        PrimaryType::Let => get_let_expression(it),
         PrimaryType::Symbol => get_symbol(it),
         PrimaryType::Int => get_church_numeral(it),
         PrimaryType::Error(ref pos) => Err(Error {
@@ -212,6 +218,59 @@ fn get_bracket_expression(it: &mut PeekableTokens) -> Result<Box<Expression>, Er
     }?;
     it.next();
     Ok(e)
+}
+
+// get_let_expression -> `let` VAR `=` expression `in` expression .
+fn get_let_expression(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
+    // let
+    match it.next().unwrap() {
+        SrcToken(Token::Let, _) => Ok(()),
+        SrcToken(_, pos) => Err(Error {
+            msg: "expected 'let'".to_string(),
+            at: pos,
+        }),
+    }?;
+    // VAR
+    let var = match it.next().unwrap() {
+        SrcToken(Token::Symbol(s), _) => Ok(s),
+        SrcToken(_, pos) => Err(Error {
+            msg: "expected symbol".to_string(),
+            at: pos,
+        }),
+    }?;
+    // =
+    match it.next().unwrap() {
+        SrcToken(Token::Equals, _) => Ok(()),
+        SrcToken(_, pos) => Err(Error {
+            msg: "expected '='".to_string(),
+            at: pos,
+        }),
+    }?;
+    // expression
+    let value = expression(it)?;
+    // in
+    match it.next().unwrap() {
+        SrcToken(Token::In, _) => Ok(()),
+        SrcToken(_, pos) => Err(Error {
+            msg: "expected 'in'".to_string(),
+            at: pos,
+        }),
+    }?;
+    // expression
+    let exp = expression(it)?;
+
+    // syntatic sugar: (var => expression)(value)
+    Ok(Box::new(
+        Expression::Application(
+            Box::new(
+                Expression::Function(
+                    introduce_symbol(&var),
+                    exp,
+                ),
+            ),
+            value
+        )
+    ))
 }
 
 // get_symbol -> VAR
