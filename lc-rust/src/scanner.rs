@@ -37,7 +37,7 @@ mod tests {
     fn it_scans_camel_case_symbol() {
         assert_eq!(
             scan("camelCase").unwrap(),
-            vec![SrcToken(Symbol("camelCase".to_string()), pos(1,1)), SrcToken(EOF, pos(1, 10))],
+            vec![SrcToken(Symbol("camelCase".to_string()), pos(1, 1)), SrcToken(EOF, pos(1, 10))],
         );
     }
 
@@ -45,7 +45,23 @@ mod tests {
     fn it_scans_integers() {
         assert_eq!(
             scan("123456").unwrap(),
-            vec![SrcToken(Integer(123456), pos(1,1)), SrcToken(EOF, pos(1, 7))],
+            vec![SrcToken(Integer(123456), pos(1, 1)), SrcToken(EOF, pos(1, 7))],
+        );
+    }
+
+    #[test]
+    fn it_scans_let_expression() {
+        assert_eq!(
+            scan("let f = b in e").unwrap(),
+            vec![
+                SrcToken(Let, pos(1, 1)),
+                SrcToken(Symbol("f".to_string()), pos(1, 5)),
+                SrcToken(Equals, pos(1, 7)),
+                SrcToken(Symbol("b".to_string()), pos(1, 9)),
+                SrcToken(In, pos(1, 11)),
+                SrcToken(Symbol("e".to_string()), pos(1, 14)),
+                SrcToken(EOF, pos(1, 15)),
+            ],
         );
     }
 
@@ -86,6 +102,9 @@ pub enum Token {
     BracketClose,
     Symbol(String),
     Integer(u32),
+    Let,
+    Equals,
+    In,
     EOF,
 }
 
@@ -165,7 +184,15 @@ pub fn scan(src: &str) -> Result<Vec<SrcToken>, Error> {
                 }
                 chars.next();
             }
-            v.push(SrcToken(Token::Symbol(word), pos));
+
+            // Keywords
+            let token = match word.as_ref() {
+                "let" => Token::Let,
+                "in" => Token::In,
+                _ => Token::Symbol(word),
+            };
+
+            v.push(SrcToken(token, pos));
             continue;
         }
 
@@ -176,6 +203,7 @@ pub fn scan(src: &str) -> Result<Vec<SrcToken>, Error> {
             'λ' => Token::Lambda,
             '\\' => Token::Lambda,
             '.' => Token::Dot,
+            '=' => Token::Equals,
             _ => return Err(Error {
                 msg: format!("Unexpected character: '{}'", c),
                 at: pos,

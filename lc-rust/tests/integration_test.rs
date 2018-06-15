@@ -48,3 +48,11 @@ fn it_compiles_a_simple_program() {
         "(a => (b => a(b)))(foo)(bar)"
     );
 }
+
+#[test]
+fn it_compiles_programs_with_let_expressions() {
+    assert_eq!(
+        lc::transpile_js("let foo = bar in λf.x").unwrap(),
+        "(foo => (f => x))(bar)"
+    );
+}
