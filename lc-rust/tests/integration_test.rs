@@ -56,3 +56,11 @@ fn it_compiles_programs_with_let_expressions() {
         "(foo => (f => x))(bar)"
     );
 }
+
+#[test]
+fn it_compiles_programs_with_let_expressions_with_mutiple_values() {
+    assert_eq!(
+        lc::transpile_js("let foo = bar, car = zar in λf.x").unwrap(),
+        "(foo => (car => (f => x))(zar))(bar)"
+    );
+}

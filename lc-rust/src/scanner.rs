@@ -105,6 +105,7 @@ pub enum Token {
     Let,
     Equals,
     In,
+    Comma,
     EOF,
 }
 
@@ -204,6 +205,7 @@ pub fn scan(src: &str) -> Result<Vec<SrcToken>, Error> {
             '\\' => Token::Lambda,
             '.' => Token::Dot,
             '=' => Token::Equals,
+            ',' => Token::Comma,
             _ => return Err(Error {
                 msg: format!("Unexpected character: '{}'", c),
                 at: pos,

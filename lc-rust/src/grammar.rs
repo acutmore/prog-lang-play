@@ -6,7 +6,7 @@
  * lamb -> `λ` VAR `.` apply .
  * lamb -> primary .
  * primary -> `(` expression `)` .
- * primary -> `let` VAR `=` expression `in` expression .
+ * primary -> `let` VAR `=` expression (`,` VAR `=` expression)* `in` expression .
  * primary -> VAR .
  * primary -> INT .
  *
@@ -71,6 +71,14 @@ mod tests {
             "Func(f){Func(x){Apply(Symbol(f), Symbol(x))}}",
         );
     }
+
+    #[test]
+    fn it_has_syntatic_sugar_for_let_expressions() {
+        assert_eq!(
+            parse(scan("let a = b, c = d in e").unwrap()).unwrap().accept(&PrettyPrinter {}),
+            "Apply(Func(a){Apply(Func(c){Symbol(e)}, Symbol(d))}, Symbol(b))",
+        );
+    }
 }
 
 use syntax::*;
@@ -112,6 +120,7 @@ fn apply(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
             Some(&SrcToken(Token::BracketClose, _))
             | Some(&SrcToken(Token::Dot, _))
             | Some(&SrcToken(Token::In, _))
+            | Some(&SrcToken(Token::Comma, _))
             | Some(&SrcToken(Token::EOF, _)) => return Ok(e),
             _ => {
                 e = Box::new(Expression::Application(
@@ -133,7 +142,7 @@ fn lamb(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
 }
 
 // primary -> '(' expression ')' .
-// primary -> `let` VAR `=` expression `in` expression .
+// primary -> `let` VAR `=` expression (`,` VAR `=` expression)* `in` expression .
 // primary -> VAR .
 // primary -> INT .
 fn primary(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
@@ -156,7 +165,7 @@ fn primary(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
 
     match primary_type {
         PrimaryType::Bracket => get_bracket_expression(it),
-        PrimaryType::Let => get_let_expression(it),
+        PrimaryType::Let => get_let_expressions(it),
         PrimaryType::Symbol => get_symbol(it),
         PrimaryType::Int => get_church_numeral(it),
         PrimaryType::Error(ref pos) => Err(Error {
@@ -220,8 +229,10 @@ fn get_bracket_expression(it: &mut PeekableTokens) -> Result<Box<Expression>, Er
     Ok(e)
 }
 
-// get_let_expression -> `let` VAR `=` expression `in` expression .
-fn get_let_expression(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
+// get_let_expressions -> `let` VAR `=` expression (`,` VAR `=` expression)* `in` expression .
+fn get_let_expressions(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
+    let mut vars_and_values = Vec::new();
+
     // let
     match it.next().unwrap() {
         SrcToken(Token::Let, _) => Ok(()),
@@ -230,24 +241,35 @@ fn get_let_expression(it: &mut PeekableTokens) -> Result<Box<Expression>, Error>
             at: pos,
         }),
     }?;
-    // VAR
-    let var = match it.next().unwrap() {
-        SrcToken(Token::Symbol(s), _) => Ok(s),
-        SrcToken(_, pos) => Err(Error {
-            msg: "expected symbol".to_string(),
-            at: pos,
-        }),
-    }?;
-    // =
-    match it.next().unwrap() {
-        SrcToken(Token::Equals, _) => Ok(()),
-        SrcToken(_, pos) => Err(Error {
-            msg: "expected '='".to_string(),
-            at: pos,
-        }),
-    }?;
-    // expression
-    let value = expression(it)?;
+
+    loop {
+        // VAR
+        let var = match it.next().unwrap() {
+            SrcToken(Token::Symbol(s), _) => Ok(s),
+            SrcToken(_, pos) => Err(Error {
+                msg: "expected symbol".to_string(),
+                at: pos,
+            }),
+        }?;
+        // =
+        match it.next().unwrap() {
+            SrcToken(Token::Equals, _) => Ok(()),
+            SrcToken(_, pos) => Err(Error {
+                msg: "expected '='".to_string(),
+                at: pos,
+            }),
+        }?;
+        // expression
+        let value = expression(it)?;
+        vars_and_values.push((var, value));
+
+        if let Some(&SrcToken(Token::Comma, _)) = it.peek() {
+            it.next();
+        } else {
+            break;
+        }
+    }
+
     // in
     match it.next().unwrap() {
         SrcToken(Token::In, _) => Ok(()),
@@ -259,9 +281,9 @@ fn get_let_expression(it: &mut PeekableTokens) -> Result<Box<Expression>, Error>
     // expression
     let exp = expression(it)?;
 
-    // syntatic sugar: (var => expression)(value)
-    Ok(Box::new(
-        Expression::Application(
+    // syntatic sugar: (var1 => (varN => expression)(valueN))(value1)
+    Ok(vars_and_values.into_iter().rev().fold(exp, |exp, (var, value)|
+        Box::new(Expression::Application(
             Box::new(
                 Expression::Function(
                     introduce_symbol(&var),
@@ -269,8 +291,7 @@ fn get_let_expression(it: &mut PeekableTokens) -> Result<Box<Expression>, Error>
                 ),
             ),
             value
-        )
-    ))
+        ))))
 }
 
 // get_symbol -> VAR
