@@ -5,15 +5,19 @@ mod scanner;
 mod syntax;
 mod grammar;
 mod emit_js;
+mod std_lib;
 
 use std::mem;
 use error::*;
 use scanner::scan;
 use grammar::parse;
 use emit_js::JavascriptEmitter;
+use std_lib::add_std_lib;
 
 pub fn transpile_js(src: &str) -> Result<String, Error> {
-    Ok(parse(scan(src)?)?.accept(&JavascriptEmitter {}))
+    let mut program = parse(scan(src)?)?;
+    add_std_lib(&mut program);
+    Ok(program.accept(&JavascriptEmitter {}))
 }
 
 const NULL: u8 = 0;

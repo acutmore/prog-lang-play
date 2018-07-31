@@ -64,3 +64,11 @@ fn it_compiles_programs_with_let_expressions_with_mutiple_values() {
         "(foo => (car => (f => x))(zar))(bar)"
     );
 }
+
+#[test]
+fn it_includes_the_identity_function_in_the_std_lib() {
+    assert_eq!(
+        lc::transpile_js("(λf.g)(I)").unwrap(),
+        "(f => g)((x => x))"
+    );
+}
