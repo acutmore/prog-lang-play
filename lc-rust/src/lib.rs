@@ -28,6 +28,7 @@ pub extern fn realloc_shared_string(length: usize) -> *const u8 {
     unsafe {
         match &SHARED_STRING {
             Some(s) if s.capacity() >= length => {
+                let s = SHARED_STRING.take().unwrap();
                 let ptr = s.as_ptr();
                 let capacity = s.capacity();
                 mem::forget(s);
