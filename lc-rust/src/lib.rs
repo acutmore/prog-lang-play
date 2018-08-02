@@ -57,7 +57,11 @@ pub extern fn process() -> *const u8 {
                         SHARED_STRING = Some(s);
                         get_message_ptr()
                     },
-                    Err(_) => &NULL
+                    Err(e) => {
+                        let err_msg = format!("! Compiler error\n{}", e.detailed_msg(s));
+                        SHARED_STRING = Some(err_msg);
+                        get_message_ptr()
+                    }
                 }
             }
         }
