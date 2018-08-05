@@ -43,20 +43,20 @@ t(`Two errors in a row`, (compiler) => {
 t(`Small program`, (compiler) => {
     assert.equal(
         transpileLc('100', compiler).length,
-        315
+        98
     );
 });
 
 t(`Medium program`, (compiler) => {
     assert.equal(
         transpileLc('500', compiler).length,
-        1515
+        110
     );
 });
 
 t(`Large program`, (compiler) => {
     assert.equal(
         transpileLc('999', compiler).length,
-        3012
+        313
     );
 });

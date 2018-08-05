@@ -80,3 +80,11 @@ fn it_includes_ten_in_the_std_lib() {
         "(f => (x => f(f(f(f(f(f(f(f(f(f(x))))))))))))"
     );
 }
+
+#[test]
+fn it_compiles_larger_numbers_to_a_compressed_church_numeral() {
+    assert_eq!(
+        lc::transpile_js("999").unwrap(),
+        "(f => (x => (f => (f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))((f => (x => f(f(x))))((f => (x => f(f(f(f(f(f(f(f(f(f(x)))))))))))))(f)))(f)((f => (x => (f => (f => (x => f(f(f(f(f(f(f(f(f(f(x))))))))))))((f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))(f)))(f)((f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))(f)(x))))(f)(x))))",
+    );
+}

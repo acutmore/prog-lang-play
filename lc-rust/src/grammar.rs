@@ -303,19 +303,10 @@ fn access_symbol(symbol: &str) -> Box<Expression> {
 
 /// Given a token iterator parked before an integer literal
 /// will consume and return the coresponding church numeral
-/// e.g.
-/// 0 == λf.λx.x,
-/// 1 == λf.λx.fx,
-/// 2 == λf.λx.ffx,
 fn get_church_numeral(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     match it.next().unwrap() {
         SrcToken(Token::Integer(int_value), _) => {
-            let mut body = access_symbol("x");
-            // Apply f to x int_value times
-            for _ in 0..int_value {
-                body = lc!{("f" body)}
-            }
-            Ok(lc!{λ"f".λ"x".body})
+            Ok(::values::numerals::get_church_numeral(int_value))
         },
         SrcToken(_, pos) => Err(Error {
             msg: "expected an integer literal".to_string(),
