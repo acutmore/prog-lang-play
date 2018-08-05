@@ -1,15 +1,10 @@
 
-#[allow(unused_imports)]
-use syntax::Expression;
-#[allow(unused_imports)]
-use syntax::SymbolInfo;
-
 macro_rules! lc {
     // function
     (λ$symbol:tt.$($tail:tt)*) => {
         Box::new(
-            Expression::Function(
-                SymbolInfo::new(($symbol).to_string()),
+            ::syntax::Expression::Function(
+                ::syntax::SymbolInfo::new(($symbol).to_string()),
                 lc!($($tail)*),
             ),
         )
@@ -17,7 +12,7 @@ macro_rules! lc {
     // application
     (($left:tt $right:tt)) => {
         Box::new(
-            Expression::Application(
+            ::syntax::Expression::Application(
                 lc!($left),
                 lc!($right),
             ),
@@ -28,16 +23,16 @@ macro_rules! lc {
         $node
     };
     ($symbol:expr) => {
-        Box::new(Expression::Symbol(
-            SymbolInfo::new(($symbol).to_string())
+        Box::new(::syntax::Expression::Symbol(
+            ::syntax::SymbolInfo::new(($symbol).to_string())
         ))
     };
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use syntax::Visitor;
+    use syntax::Expression;
 
     struct PrettyPrinter {}
     impl Visitor<String> for PrettyPrinter {
