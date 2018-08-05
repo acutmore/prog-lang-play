@@ -123,10 +123,8 @@ fn apply(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
             | Some(&SrcToken(Token::Comma, _))
             | Some(&SrcToken(Token::EOF, _)) => return Ok(e),
             _ => {
-                e = Box::new(Expression::Application(
-                    e,
-                    lamb(it)?
-                ));
+                let rhs = lamb(it)?;
+                e = lc!{(e rhs)}
             }
         }
     }
@@ -202,10 +200,7 @@ fn get_lamb(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     }?;
 
     let body = expression(it)?;
-    Ok(Box::new(Expression::Function(
-        SymbolInfo::new(param),
-        body,
-    )))
+    Ok(lc!{λ(param).body})
 }
 
 // get_bracket_expression -> '(' expression ')' .
@@ -282,25 +277,17 @@ fn get_let_expressions(it: &mut PeekableTokens) -> Result<Box<Expression>, Error
     let exp = expression(it)?;
 
     // syntatic sugar: (var1 => (varN => expression)(valueN))(value1)
-    Ok(vars_and_values.into_iter().rev().fold(exp, |exp, (var, value)|
-        Box::new(Expression::Application(
-            Box::new(
-                Expression::Function(
-                    introduce_symbol(&var),
-                    exp,
-                ),
-            ),
-            value
-        ))))
+    Ok(vars_and_values.into_iter().rev().fold(exp, |exp, (var, value)| {
+        let f = lc!{λ(&var).exp};
+        lc!{(f value)}
+    }))
 }
 
 // get_symbol -> VAR
 fn get_symbol(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     match it.next().unwrap() {
         SrcToken(Token::Symbol(s), _) =>
-            Ok(Box::new(Expression::Symbol(
-                SymbolInfo::new(s),
-            ))),
+            Ok(access_symbol(&s)),
         SrcToken(_, pos) => Err(Error {
             msg: "expected a symbol".to_string(),
             at: pos,
@@ -312,10 +299,6 @@ fn access_symbol(symbol: &str) -> Box<Expression> {
     Box::new(Expression::Symbol(
         SymbolInfo::new(symbol.to_string())
     ))
-}
-
-fn introduce_symbol(symbol: &str) -> SymbolInfo {
-    SymbolInfo::new(symbol.to_string())
 }
 
 /// Given a token iterator parked before an integer literal
@@ -330,20 +313,9 @@ fn get_church_numeral(it: &mut PeekableTokens) -> Result<Box<Expression>, Error>
             let mut body = access_symbol("x");
             // Apply f to x int_value times
             for _ in 0..int_value {
-                body = Box::new(Expression::Application(
-                    access_symbol("f"),
-                    body
-                ));
+                body = lc!{("f" body)}
             }
-            Ok(Box::new(
-                Expression::Function(
-                    introduce_symbol("f"),
-                    Box::new(Expression::Function(
-                        introduce_symbol("x"),
-                        body
-                    ))
-                )
-            ))
+            Ok(lc!{λ"f".λ"x".body})
         },
         SrcToken(_, pos) => Err(Error {
             msg: "expected an integer literal".to_string(),

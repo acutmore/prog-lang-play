@@ -3,6 +3,7 @@ extern crate regex;
 mod error;
 mod scanner;
 mod syntax;
+#[macro_use] mod macros;
 mod grammar;
 mod emit_js;
 mod std_lib;
