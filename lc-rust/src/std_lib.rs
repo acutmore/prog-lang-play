@@ -1,6 +1,4 @@
 
-use grammar::parse;
-use scanner::scan;
 use syntax::Expression;
 use syntax::Expression::*;
 use syntax::Mutable;
@@ -8,6 +6,7 @@ use syntax::MutationVisitor;
 
 enum StdLibFunction {
     Identity,
+    Ten,
 }
 
 struct StdLib {}
@@ -18,6 +17,7 @@ impl<'a> MutationVisitor<'a> for StdLib {
             Symbol(ref s) => {
                 match s.id.as_ref() {
                     "I" => Some(StdLibFunction::Identity),
+                    "Ten" => Some(StdLibFunction::Ten),
                     _ => None,
                 }
             },
@@ -38,7 +38,12 @@ impl<'a> MutationVisitor<'a> for StdLib {
 
         match replace_with {
             Some(StdLibFunction::Identity) => {
-                *e = parse(scan("λx.x").unwrap()).unwrap();
+                *e = lc!{λ"x"."x"};
+            },
+            Some(StdLibFunction::Ten) => {
+                let ten_body =
+                    lc!{("f" ("f" ("f" ("f" ("f" ("f" ("f" ("f" ("f" ("f" "x"))))))))))};
+                *e = lc!{λ"f".λ"x".ten_body};
             },
             None => {}
         }

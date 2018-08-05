@@ -72,3 +72,11 @@ fn it_includes_the_identity_function_in_the_std_lib() {
         "(f => g)((x => x))"
     );
 }
+
+#[test]
+fn it_includes_ten_in_the_std_lib() {
+    assert_eq!(
+        lc::transpile_js("Ten").unwrap(),
+        "(f => (x => f(f(f(f(f(f(f(f(f(f(x))))))))))))"
+    );
+}
