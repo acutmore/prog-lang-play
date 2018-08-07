@@ -17,8 +17,8 @@ use emit_js::JavascriptEmitter;
 use std_lib::add_std_lib;
 
 pub fn transpile_js(src: &str) -> Result<String, Error> {
-    let mut program = parse(scan(src)?)?;
-    add_std_lib(&mut program);
+    let program = parse(scan(src)?)?;
+    let program = add_std_lib(program);
     Ok(program.accept(&JavascriptEmitter {}))
 }
 

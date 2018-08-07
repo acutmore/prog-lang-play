@@ -1,9 +1,9 @@
 
 use syntax::Expression;
 use syntax::Expression::*;
-use syntax::Mutable;
-use syntax::MutationVisitor;
+use syntax::Visitor;
 
+#[derive(PartialEq)]
 enum StdLibFunction {
     Identity,
     Ten,
@@ -11,50 +11,56 @@ enum StdLibFunction {
 
 struct StdLib {}
 
-impl<'a> MutationVisitor<'a> for StdLib {
-    fn visit_expression(&self, e: &'a mut Box<Expression>) -> &'a mut Box<Expression> {
-        let replace_with = match **e {
+impl Visitor<Vec<StdLibFunction>> for StdLib {
+    fn visit_expression(&self, e: &Expression) -> Vec<StdLibFunction> {
+        match e {
             Symbol(ref s) => {
                 match s.id.as_ref() {
-                    "I" => Some(StdLibFunction::Identity),
-                    "Ten" => Some(StdLibFunction::Ten),
-                    _ => None,
+                    "I" => vec![StdLibFunction::Identity],
+                    "Ten" => vec![StdLibFunction::Ten],
+                    _ => vec![],
                 }
             },
-            Function(_, ref mut body) => {
-                body.accept_mutation(self);
-                None
+            Function(_, ref body) => {
+                body.accept(self)
             },
-            Application(_, _) => {
-                if let Application(ref mut left, _) = **e {
-                    left.accept_mutation(self);
+            Application(left, right) => {
+                let mut left_vec = left.accept(self);
+                let right_vec = right.accept(self);
+                for fun in right_vec.into_iter() {
+                    if !left_vec.contains(&fun) {
+                        left_vec.push(fun);
+                    }
                 }
-                if let Application(_, ref mut right) = **e {
-                    right.accept_mutation(self);
-                }
-                None
+                return left_vec;
             },
-        };
-
-        match replace_with {
-            Some(StdLibFunction::Identity) => {
-                *e = lc!{λ"x"."x"};
-            },
-            Some(StdLibFunction::Ten) => {
-                let ten_body =
-                    lc!{("f" ("f" ("f" ("f" ("f" ("f" ("f" ("f" ("f" ("f" "x"))))))))))};
-                *e = lc!{λ"f".λ"x".ten_body};
-            },
-            None => {}
         }
-        e
     }
 }
 
 /// Searches the given program for references to std lib functions
 /// and adds the implementations to the tree.
 /// The program with std lib functions added is returned
-pub fn add_std_lib(program: & mut Box<Expression>) -> & mut Box<Expression> {
-    let visitor = StdLib {};
-    program.accept_mutation(&visitor)
+pub fn add_std_lib(program: Box<Expression>) -> Box<Expression> {
+    let funs = program.accept(& StdLib {});
+    let mut new_program = program;
+    for fun in funs.into_iter() {
+        let value = match fun {
+            StdLibFunction::Identity => {
+                lc!{λ"x"."x"}
+            },
+            StdLibFunction::Ten => {
+                let ten_body =
+                    lc!{("f" ("f" ("f" ("f" ("f" ("f" ("f" ("f" ("f" ("f" "x"))))))))))};
+                lc!{λ"f".λ"x".ten_body}
+            },
+        };
+        let name = match fun {
+            StdLibFunction::Identity => "I",
+            StdLibFunction::Ten => "Ten",
+        };
+        let f = lc!{λ(&name).new_program};
+        new_program = lc!{(f value)};
+    }
+    return new_program;
 }
