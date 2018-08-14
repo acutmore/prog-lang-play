@@ -35,7 +35,7 @@ mod tests {
     }
 
     fn err(msg: &'static str, line: u16, col: u16) -> Error {
-        Error { msg: msg.to_string(), at: SrcPosition { line, col } }
+        Error { msg: msg.to_string(), at: SrcPosition { line, col, index: 0 } }
     }
 }
 
