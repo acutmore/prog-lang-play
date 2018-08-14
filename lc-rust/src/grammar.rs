@@ -286,19 +286,12 @@ fn get_let_expressions(it: &mut PeekableTokens) -> Result<Box<Expression>, Error
 // get_symbol -> VAR
 fn get_symbol(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     match it.next().unwrap() {
-        SrcToken(Token::Symbol(s), _) =>
-            Ok(access_symbol(&s)),
+        SrcToken(Token::Symbol(s), _) => Ok(lc!{&s}),
         SrcToken(_, pos) => Err(Error {
             msg: "expected a symbol".to_string(),
             at: pos,
         }),
     }
-}
-
-fn access_symbol(symbol: &str) -> Box<Expression> {
-    Box::new(Expression::Symbol(
-        SymbolInfo::new(symbol.to_string())
-    ))
 }
 
 /// Given a token iterator parked before an integer literal
