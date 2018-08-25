@@ -37,11 +37,25 @@ mod tests {
 
 pub struct SymbolInfo {
     pub id: String,
+    pub at: u16,
 }
 
 impl SymbolInfo {
-    pub fn new<S: Into<String>>(id: S) -> SymbolInfo{
-        SymbolInfo { id: id.into() }
+    pub fn new<S>(s: S) -> SymbolInfo
+    where S: Into<SymbolInfo> {
+        s.into()
+    }
+}
+
+impl From<(String, u16)> for SymbolInfo {
+    fn from(item: (String, u16)) -> Self {
+        SymbolInfo { id: item.0, at: item.1, }
+    }
+}
+
+impl From<&'static str> for SymbolInfo {
+    fn from(item: &'static str) -> Self {
+        SymbolInfo { id: item.to_string(), at: 0, }
     }
 }
 

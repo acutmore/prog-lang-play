@@ -184,7 +184,7 @@ fn get_lamb(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     }?;
 
     let param = match it.next().unwrap() {
-        SrcToken(Token::Symbol(s), _) => Ok(s),
+        SrcToken(Token::Symbol(s), pos) => Ok((s, pos.index)),
         SrcToken(_, pos) => Err(Error {
             msg: "expected symbol".to_string(),
             at: pos,
@@ -200,7 +200,7 @@ fn get_lamb(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     }?;
 
     let body = expression(it)?;
-    Ok(lc!{λ(param).body})
+    Ok(lc!{λ{param}.body})
 }
 
 // get_bracket_expression -> '(' expression ')' .
@@ -240,7 +240,7 @@ fn get_let_expressions(it: &mut PeekableTokens) -> Result<Box<Expression>, Error
     loop {
         // VAR
         let var = match it.next().unwrap() {
-            SrcToken(Token::Symbol(s), _) => Ok(s),
+            SrcToken(Token::Symbol(s), pos) => Ok((s, pos.index)),
             SrcToken(_, pos) => Err(Error {
                 msg: "expected symbol".to_string(),
                 at: pos,
@@ -278,7 +278,7 @@ fn get_let_expressions(it: &mut PeekableTokens) -> Result<Box<Expression>, Error
 
     // syntatic sugar: (var1 => (varN => expression)(valueN))(value1)
     Ok(vars_and_values.into_iter().rev().fold(exp, |exp, (var, value)| {
-        let f = lc!{λ(&var).exp};
+        let f = lc!{λ{var}.exp};
         lc!{(f value)}
     }))
 }
@@ -286,7 +286,7 @@ fn get_let_expressions(it: &mut PeekableTokens) -> Result<Box<Expression>, Error
 // get_symbol -> VAR
 fn get_symbol(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     match it.next().unwrap() {
-        SrcToken(Token::Symbol(s), _) => Ok(lc!{&s}),
+        SrcToken(Token::Symbol(s), pos) => Ok(lc!{{(s, pos.index)}}),
         SrcToken(_, pos) => Err(Error {
             msg: "expected a symbol".to_string(),
             at: pos,

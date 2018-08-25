@@ -6,14 +6,14 @@ mod syntax;
 #[macro_use] mod macros;
 mod values;
 mod grammar;
-mod emit_js;
+mod emitters;
 mod std_lib;
 
 use std::mem;
 use error::*;
 use scanner::scan;
 use grammar::parse;
-use emit_js::JavascriptEmitter;
+use emitters::emit_js::JavascriptEmitter;
 use std_lib::add_std_lib;
 
 pub fn transpile_js(src: &str) -> Result<String, Error> {

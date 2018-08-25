@@ -59,7 +59,7 @@ pub fn add_std_lib(program: Box<Expression>) -> Box<Expression> {
             StdLibFunction::Identity => "I",
             StdLibFunction::Ten => "Ten",
         };
-        let f = lc!{λ(&name).new_program};
+        let f = lc!{λ{name}.new_program};
         new_program = lc!{(f value)};
     }
     return new_program;

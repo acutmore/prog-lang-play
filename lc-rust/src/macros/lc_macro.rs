@@ -4,7 +4,7 @@ macro_rules! lc {
     (λ$symbol:tt.$($tail:tt)*) => {
         Box::new(
             ::syntax::Expression::Function(
-                ::syntax::SymbolInfo::new(($symbol).to_string()),
+                ::syntax::SymbolInfo::new($symbol),
                 lc!($($tail)*),
             ),
         )
@@ -24,7 +24,7 @@ macro_rules! lc {
     };
     ($symbol:expr) => {
         Box::new(::syntax::Expression::Symbol(
-            ::syntax::SymbolInfo::new(($symbol).to_string())
+            ::syntax::SymbolInfo::new($symbol)
         ))
     };
 }
