@@ -33,47 +33,69 @@ fn e10(digit: u32, place: u32) -> Box<Expression> {
     }
 }
 
-fn add(a: Box<Expression>, b: Box<Expression>) -> Box<Expression> {
-    lc!{λ"f".λ"x".((a "f") ((b "f") "x"))}
+enum AdditionPhase {
+    Zero(),
+    One(Box<Expression>),
+    More(Box<Expression>),
+}
+
+fn add(value: Box<Expression>, progress: AdditionPhase) -> AdditionPhase {
+    match progress {
+        AdditionPhase::Zero() =>
+            AdditionPhase::One(value),
+        AdditionPhase::One(e) =>
+            AdditionPhase::More(lc!{((value "f") ((e "f") "x"))}),
+        AdditionPhase::More(e) =>
+            AdditionPhase::More(lc!{((value "f") e)}),
+    }
 }
 
 struct Digits {
     n: u32,
+    place: u32,
+}
+
+impl Digits {
+    fn new(n: u32) ->Digits {
+        Digits { n, place: 0, }
+    }
+}
+
+struct DigitAndPlace {
+    digit: u32,
+    place: u32,
 }
 
 impl Iterator for Digits {
-    type Item = u32;
+    type Item = DigitAndPlace;
 
-    fn next(&mut self) -> Option<u32> {
+    fn next(&mut self) -> Option<DigitAndPlace> {
         let n = self.n;
+        self.place += 1;
         if n == 0 {
             return None;
         }
         self.n = n / 10;
-        Some(n % 10)
+        Some(DigitAndPlace {digit: n % 10, place: self.place - 1,})
     }
 }
 
 /// Given an integer literal will return the coresponding church numeral
 pub fn get_church_numeral(v: u32) -> Box<Expression> {
-    if v == 0 {
-        return lc!{λ"f".λ"x"."x"};
-    }
-
-    let mut next_place = 0;
-    let mut e: Option<Box<Expression>> = None;
-    for digit in (Digits {n: v}) {
-        let place = next_place;
-        next_place = place + 1;
+    let mut value = AdditionPhase::Zero();
+    for DigitAndPlace {digit, place} in Digits::new(v) {
         if digit == 0 {
             continue;
         }
-        let in_place = e10(digit, place);
-        if e.is_none() {
-            e = Some(in_place);
-            continue;
-        }
-        e = Some(add(in_place, e.unwrap()));
+        let place_value = e10(digit, place);
+        value = add(place_value, value);
     }
-    e.unwrap()
+    match value {
+        AdditionPhase::Zero() =>
+            lc!{λ"f".λ"x"."x"},
+        AdditionPhase::One(e) =>
+            e,
+        AdditionPhase::More(e) =>
+            lc!{λ"f".λ"x".e},
+    }
 }

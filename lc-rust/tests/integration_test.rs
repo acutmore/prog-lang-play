@@ -85,6 +85,6 @@ fn it_includes_ten_in_the_std_lib() {
 fn it_compiles_larger_numbers_to_a_compressed_church_numeral() {
     assert_eq!(
         lc::transpile_js("999").unwrap(),
-        "(Ten => (f => (x => (f => (f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))((f => (x => f(f(x))))(Ten)(f)))(f)((f => (x => (f => Ten((f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))(f)))(f)((f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))(f)(x))))(f)(x)))))((f => (x => f(f(f(f(f(f(f(f(f(f(x)))))))))))))",
+        "(Ten => (f => (x => (f => (f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))((f => (x => f(f(x))))(Ten)(f)))(f)((f => Ten((f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))(f)))(f)((f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))(f)(x))))))((f => (x => f(f(f(f(f(f(f(f(f(f(x)))))))))))))",
     );
 }

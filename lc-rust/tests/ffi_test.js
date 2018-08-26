@@ -57,7 +57,26 @@ t(`Medium program`, (compiler) => {
 t(`Large program`, (compiler) => {
     assert.equal(
         transpileLc('999', compiler).length,
-        285
+        265
+    );
+});
+
+t(`Numbers`, (compiler) => {
+    function toNumber(program) {
+        return (new Function(`return ${program};`))()
+            (n => n + 1)(0);
+    }
+    assert.equal(
+        toNumber(transpileLc('0', compiler)),
+        0
+    );
+    assert.equal(
+        toNumber(transpileLc('1', compiler)),
+        1
+    );
+    assert.equal(
+        toNumber(transpileLc('768', compiler)),
+        768
     );
 });
 
