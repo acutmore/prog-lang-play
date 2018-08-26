@@ -37,6 +37,7 @@ mod tests {
 pub struct SymbolInfo {
     pub id: String,
     pub at: u16,
+    pub width: u16,
 }
 
 impl SymbolInfo {
@@ -46,15 +47,15 @@ impl SymbolInfo {
     }
 }
 
-impl From<(String, u16)> for SymbolInfo {
-    fn from(item: (String, u16)) -> Self {
-        SymbolInfo { id: item.0, at: item.1, }
+impl From<(String, ::scanner::SrcPosition)> for SymbolInfo {
+    fn from(item: (String, ::scanner::SrcPosition)) -> Self {
+        SymbolInfo { id: item.0, at: item.1.index, width: item.1.width, }
     }
 }
 
 impl From<&'static str> for SymbolInfo {
     fn from(item: &'static str) -> Self {
-        SymbolInfo { id: item.to_string(), at: 0, }
+        SymbolInfo { id: item.to_string(), at: 0, width: 0 }
     }
 }
 

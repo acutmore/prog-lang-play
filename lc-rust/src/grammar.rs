@@ -184,7 +184,7 @@ fn get_lamb(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     }?;
 
     let param = match it.next().unwrap() {
-        SrcToken(Token::Symbol(s), pos) => Ok((s, pos.index)),
+        SrcToken(Token::Symbol(s), pos) => Ok((s, pos)),
         SrcToken(_, pos) => Err(Error {
             msg: "expected symbol".to_string(),
             at: pos,
@@ -240,7 +240,7 @@ fn get_let_expressions(it: &mut PeekableTokens) -> Result<Box<Expression>, Error
     loop {
         // VAR
         let var = match it.next().unwrap() {
-            SrcToken(Token::Symbol(s), pos) => Ok((s, pos.index)),
+            SrcToken(Token::Symbol(s), pos) => Ok((s, pos)),
             SrcToken(_, pos) => Err(Error {
                 msg: "expected symbol".to_string(),
                 at: pos,
@@ -286,7 +286,7 @@ fn get_let_expressions(it: &mut PeekableTokens) -> Result<Box<Expression>, Error
 // get_symbol -> VAR
 fn get_symbol(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     match it.next().unwrap() {
-        SrcToken(Token::Symbol(s), pos) => Ok(lc!{{(s, pos.index)}}),
+        SrcToken(Token::Symbol(s), pos) => Ok(lc!{{(s, pos)}}),
         SrcToken(_, pos) => Err(Error {
             msg: "expected a symbol".to_string(),
             at: pos,

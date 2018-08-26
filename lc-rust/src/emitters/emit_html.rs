@@ -2,15 +2,25 @@
 #[cfg(test)]
 mod tests {
     use super::*;
+    use scanner::SrcPosition;
 
     #[test]
     fn it_emits_a_simple_program() {
+        let a = SymbolInfo::new((
+            "a".to_string(),
+            SrcPosition { line: 0, col: 0, index: 1, width: 1 }
+        ));
+        let b = SymbolInfo::new((
+            "b".to_string(),
+            SrcPosition { line: 0, col: 0, index: 0, width: 0 }
+        ));
+        let c = SymbolInfo::new((
+            "c".to_string(),
+            SrcPosition { line: 0, col: 0, index: 3, width: 1 }
+        ));
         let ast = Application(
-            Box::new(Function(
-                SymbolInfo::new(("a".to_string(), 1)),
-                Box::new(Symbol(SymbolInfo::new(("b".to_string(), 0)))),
-            )),
-            Box::new(Symbol(SymbolInfo::new(("c".to_string(), 3)))),
+            Box::new(Function(a,  Box::new(Symbol(b)))),
+            Box::new(Symbol(c)),
         );
         assert_eq!(
             ast.accept(&mut HTMLEmitter {}),
@@ -25,7 +35,7 @@ use syntax::Expression::*;
 fn range_attributes(symbol: &SymbolInfo) -> String {
     format!("data-lc-start=\"{:#018b}\" data-lc-end=\"{:#018b}\"",
         symbol.at,
-        symbol.at + (symbol.id.len() as u16)
+        symbol.at + symbol.width,
     )
 }
 
