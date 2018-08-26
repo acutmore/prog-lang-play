@@ -36,7 +36,7 @@ mod tests {
 
     struct PrettyPrinter {}
     impl Visitor<String> for PrettyPrinter {
-        fn visit_expression(&self, e: &Expression) -> String {
+        fn visit_expression(&mut self, e: &Expression) -> String {
             match e {
                 &Expression::Symbol(ref s) =>
                     format!("Symbol({})", s.id),
@@ -52,7 +52,7 @@ mod tests {
     fn it_expands_to_a_symbol() {
         assert_eq!(
             lc!("a")
-                .accept(&PrettyPrinter {}),
+                .accept(&mut PrettyPrinter {}),
             "Symbol(a)",
         );
     }
@@ -61,7 +61,7 @@ mod tests {
     fn it_expands_to_simple_function() {
         assert_eq!(
             lc!(λ"a"."b")
-                .accept(&PrettyPrinter {}),
+                .accept(&mut PrettyPrinter {}),
             "Func(a){Symbol(b)}",
         );
     }
@@ -70,7 +70,7 @@ mod tests {
     fn it_expands_to_binary_function() {
         assert_eq!(
             lc!(λ"a".λ"b"."c")
-                .accept(&PrettyPrinter {}),
+                .accept(&mut PrettyPrinter {}),
             "Func(a){Func(b){Symbol(c)}}",
         );
     }
@@ -79,7 +79,7 @@ mod tests {
     fn it_expands_to_function_application() {
         assert_eq!(
             lc!(("a" "b"))
-                .accept(&PrettyPrinter {}),
+                .accept(&mut PrettyPrinter {}),
             "Apply(Symbol(a), Symbol(b))",
         );
     }

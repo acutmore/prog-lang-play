@@ -6,7 +6,7 @@ mod tests {
 
     struct PrettyPrinter {}
     impl Visitor<String> for PrettyPrinter {
-        fn visit_expression(&self, e: &Expression) -> String {
+        fn visit_expression(&mut self, e: &Expression) -> String {
             match e {
                 &Expression::Symbol(ref s) =>
                     format!("Symbol({})", s.id),
@@ -20,7 +20,6 @@ mod tests {
 
     #[test]
     fn it_can_build_an_ast() {
-        let visitor = PrettyPrinter {};
         let ast = Application(
             Box::new(Function(
                 SymbolInfo::new("a"),
@@ -29,7 +28,7 @@ mod tests {
             Box::new(Symbol(SymbolInfo::new("c"))),
         );
         assert_eq!(
-            ast.accept(&visitor),
+            ast.accept(&mut PrettyPrinter {}),
             "Apply(Func(a){Symbol(b)}, Symbol(c))",
         );
     }
@@ -66,11 +65,11 @@ pub enum Expression {
 }
 
 pub trait Visitor<T> {
-    fn visit_expression(&self, &Expression) -> T;
+    fn visit_expression(& mut self, &Expression) -> T;
 }
 
 impl Expression {
-    pub fn accept<T>(&self, visitor: &Visitor<T>) -> T {
+    pub fn accept<T>(&self, visitor: &mut Visitor<T>) -> T {
         visitor.visit_expression(self)
     }
 }

@@ -20,13 +20,13 @@ use std_lib::add_std_lib;
 pub fn transpile_js(src: &str) -> Result<String, Error> {
     let program = parse(scan(src)?)?;
     let program = add_std_lib(program);
-    Ok(program.accept(&JavascriptEmitter {}))
+    Ok(program.accept(&mut JavascriptEmitter {}))
 }
 
 pub fn transpile_html(src: &str) -> Result<String, Error> {
     let program = parse(scan(src)?)?;
     let program = add_std_lib(program);
-    Ok(program.accept(&HTMLEmitter {}))
+    Ok(program.accept(&mut HTMLEmitter {}))
 }
 
 const NULL: u8 = 0;

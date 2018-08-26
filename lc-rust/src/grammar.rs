@@ -20,7 +20,7 @@ mod tests {
 
     struct PrettyPrinter {}
     impl Visitor<String> for PrettyPrinter {
-        fn visit_expression(&self, e: &Expression) -> String {
+        fn visit_expression(&mut self, e: &Expression) -> String {
             match e {
                 &Expression::Symbol(ref s) =>
                     format!("Symbol({})", s.id),
@@ -35,7 +35,7 @@ mod tests {
     #[test]
     fn it_parses_a_simple_function() {
         assert_eq!(
-            parse(scan("λa.b").unwrap()).unwrap().accept(&PrettyPrinter {}),
+            parse(scan("λa.b").unwrap()).unwrap().accept(&mut PrettyPrinter {}),
             "Func(a){Symbol(b)}",
         );
     }
@@ -43,7 +43,7 @@ mod tests {
     #[test]
     fn it_parses_brackets() {
         assert_eq!(
-            parse(scan("(λa.(b))(λc.d)").unwrap()).unwrap().accept(&PrettyPrinter {}),
+            parse(scan("(λa.(b))(λc.d)").unwrap()).unwrap().accept(&mut PrettyPrinter {}),
             "Apply(Func(a){Symbol(b)}, Func(c){Symbol(d)})",
         );
     }
@@ -51,7 +51,7 @@ mod tests {
     #[test]
     fn it_greedy_parses_function_bodies() {
         assert_eq!(
-            parse(scan("λx.m n").unwrap()).unwrap().accept(&PrettyPrinter {}),
+            parse(scan("λx.m n").unwrap()).unwrap().accept(&mut PrettyPrinter {}),
             "Func(x){Apply(Symbol(m), Symbol(n))}",
         );
     }
@@ -59,7 +59,7 @@ mod tests {
     #[test]
     fn it_parses_function_application_as_left_associative() {
         assert_eq!(
-            parse(scan("m n p").unwrap()).unwrap().accept(&PrettyPrinter {}),
+            parse(scan("m n p").unwrap()).unwrap().accept(&mut PrettyPrinter {}),
             "Apply(Apply(Symbol(m), Symbol(n)), Symbol(p))",
         );
     }
@@ -67,7 +67,7 @@ mod tests {
     #[test]
     fn it_has_syntatic_sugar_for_int_literal() {
         assert_eq!(
-            parse(scan("1").unwrap()).unwrap().accept(&PrettyPrinter {}),
+            parse(scan("1").unwrap()).unwrap().accept(&mut PrettyPrinter {}),
             "Func(f){Func(x){Apply(Symbol(f), Symbol(x))}}",
         );
     }
@@ -75,7 +75,7 @@ mod tests {
     #[test]
     fn it_has_syntatic_sugar_for_let_expressions() {
         assert_eq!(
-            parse(scan("let a = b, c = d in e").unwrap()).unwrap().accept(&PrettyPrinter {}),
+            parse(scan("let a = b, c = d in e").unwrap()).unwrap().accept(&mut PrettyPrinter {}),
             "Apply(Func(a){Apply(Func(c){Symbol(e)}, Symbol(d))}, Symbol(b))",
         );
     }

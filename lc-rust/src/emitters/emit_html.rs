@@ -5,7 +5,6 @@ mod tests {
 
     #[test]
     fn it_emits_a_simple_program() {
-        let visitor = HTMLEmitter {};
         let ast = Application(
             Box::new(Function(
                 SymbolInfo::new(("a".to_string(), 1)),
@@ -14,7 +13,7 @@ mod tests {
             Box::new(Symbol(SymbolInfo::new(("c".to_string(), 3)))),
         );
         assert_eq!(
-            ast.accept(&visitor),
+            ast.accept(&mut HTMLEmitter {}),
             "<span data-lc-start=\"0b0000000000000001\" data-lc-end=\"0b0000000000000010\">(a => </span>b<span data-lc-start=\"0b0000000000000001\" data-lc-end=\"0b0000000000000010\">)</span>(<span data-lc-start=\"0b0000000000000011\" data-lc-end=\"0b0000000000000100\">c</span>)",
         );
     }
@@ -32,7 +31,7 @@ fn range_attributes(symbol: &SymbolInfo) -> String {
 
 pub struct HTMLEmitter {}
 impl Visitor<String> for HTMLEmitter {
-    fn visit_expression(&self, e: &Expression) -> String {
+    fn visit_expression(&mut self, e: &Expression) -> String {
         match e {
             &Symbol(ref s) => {
                 if s.at == 0 {

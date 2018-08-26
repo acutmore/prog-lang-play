@@ -5,7 +5,6 @@ mod tests {
 
     #[test]
     fn it_emits_a_simple_program() {
-        let visitor = JavascriptEmitter {};
         let ast = Application(
             Box::new(Function(
                 SymbolInfo::new("a"),
@@ -14,7 +13,7 @@ mod tests {
             Box::new(Symbol(SymbolInfo::new("c"))),
         );
         assert_eq!(
-            ast.accept(&visitor),
+            ast.accept(&mut JavascriptEmitter {}),
             "(a => b)(c)",
         );
     }
@@ -25,7 +24,7 @@ use syntax::Expression::*;
 
 pub struct JavascriptEmitter {}
 impl Visitor<String> for JavascriptEmitter {
-    fn visit_expression(&self, e: &Expression) -> String {
+    fn visit_expression(&mut self, e: &Expression) -> String {
         match e {
             &Symbol(ref s) =>
                 format!("{}", s.id),

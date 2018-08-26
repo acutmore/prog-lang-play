@@ -12,7 +12,7 @@ enum StdLibFunction {
 struct StdLib {}
 
 impl Visitor<Vec<StdLibFunction>> for StdLib {
-    fn visit_expression(&self, e: &Expression) -> Vec<StdLibFunction> {
+    fn visit_expression(&mut self, e: &Expression) -> Vec<StdLibFunction> {
         match e {
             Symbol(ref s) => {
                 match s.id.as_ref() {
@@ -42,7 +42,7 @@ impl Visitor<Vec<StdLibFunction>> for StdLib {
 /// and adds the implementations to the tree.
 /// The program with std lib functions added is returned
 pub fn add_std_lib(program: Box<Expression>) -> Box<Expression> {
-    let funs = program.accept(& StdLib {});
+    let funs = program.accept(&mut StdLib {});
     let mut new_program = program;
     for fun in funs.into_iter() {
         let value = match fun {
