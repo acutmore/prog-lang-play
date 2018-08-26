@@ -60,3 +60,10 @@ t(`Large program`, (compiler) => {
         285
     );
 });
+
+t('HTML', (compiler) => {
+    assert.equal(
+        transpileLc('\\x.x', compiler, { emit: 'html' }),
+        '<span data-lc-start="0b0000000000000001" data-lc-end="0b0000000000000010">(x => </span><span data-lc-start="0b0000000000000011" data-lc-end="0b0000000000000100">x</span><span data-lc-start="0b0000000000000001" data-lc-end="0b0000000000000010">)</span>'
+    );
+});

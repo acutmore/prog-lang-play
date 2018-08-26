@@ -14,6 +14,7 @@ use error::*;
 use scanner::scan;
 use grammar::parse;
 use emitters::emit_js::JavascriptEmitter;
+use emitters::emit_html::HTMLEmitter;
 use std_lib::add_std_lib;
 
 pub fn transpile_js(src: &str) -> Result<String, Error> {
@@ -22,7 +23,15 @@ pub fn transpile_js(src: &str) -> Result<String, Error> {
     Ok(program.accept(&JavascriptEmitter {}))
 }
 
+pub fn transpile_html(src: &str) -> Result<String, Error> {
+    let program = parse(scan(src)?)?;
+    let program = add_std_lib(program);
+    Ok(program.accept(&HTMLEmitter {}))
+}
+
 const NULL: u8 = 0;
+const JS: u8 = 1;
+const HTML: u8 = 2;
 static mut SHARED_STRING: Option<String> = None;
 
 #[no_mangle]
@@ -48,12 +57,16 @@ pub extern fn realloc_shared_string(length: usize) -> *const u8 {
 }
 
 #[no_mangle]
-pub extern fn process() -> *const u8 {
+pub extern fn process(emit_format: u8) -> *const u8 {
     unsafe {
         match &SHARED_STRING {
             None => &NULL,
             Some(s) => {
-                let result = transpile_js(s);
+                let result = match emit_format {
+                    JS => transpile_js(s),
+                    HTML => transpile_html(s),
+                    _ => Ok("".to_string()),
+                };
                 match result {
                     Ok(s) => {
                         SHARED_STRING = Some(s);
