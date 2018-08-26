@@ -88,3 +88,11 @@ fn it_compiles_larger_numbers_to_a_compressed_church_numeral() {
         "(Ten => (f => (x => (f => (f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))((f => (x => f(f(x))))(Ten)(f)))(f)((f => Ten((f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))(f)))(f)((f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))(f)(x))))))((f => (x => f(f(f(f(f(f(f(f(f(f(x)))))))))))))",
     );
 }
+
+#[test]
+fn it_compiles_number_to_html() {
+    assert_eq!(
+        lc::transpile_html("10").unwrap(),
+        "(Ten => <span data-lc-start=\"0b0000000000000000\" data-lc-end=\"0b0000000000000010\">(f => </span>Ten((f => (x => f(x)))(f))<span data-lc-start=\"0b0000000000000000\" data-lc-end=\"0b0000000000000010\">)</span>)((f => (x => f(f(f(f(f(f(f(f(f(f(x)))))))))))))"
+    );
+}

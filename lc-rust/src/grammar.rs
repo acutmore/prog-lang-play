@@ -298,8 +298,8 @@ fn get_symbol(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
 /// will consume and return the coresponding church numeral
 fn get_church_numeral(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     match it.next().unwrap() {
-        SrcToken(Token::Integer(int_value), _) => {
-            Ok(::values::numerals::get_church_numeral(int_value))
+        SrcToken(Token::Integer(int_value), pos) => {
+            Ok(::values::numerals::get_church_numeral(int_value, pos))
         },
         SrcToken(_, pos) => Err(Error {
             msg: "expected an integer literal".to_string(),

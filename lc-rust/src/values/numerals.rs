@@ -80,8 +80,22 @@ impl Iterator for Digits {
     }
 }
 
+fn set_position(pos: ::scanner::SrcPosition, n: Box<Expression>) -> Box<Expression> {
+    let n = *n;
+    if let Expression::Function(s, body) = n {
+        let param = ::syntax::SymbolInfo {
+            at: pos.index,
+            width: pos.width,
+            ..s
+        };
+        Box::new(Expression::Function(param, body))
+    } else {
+        Box::new(n)
+    }
+}
+
 /// Given an integer literal will return the coresponding church numeral
-pub fn get_church_numeral(v: u32) -> Box<Expression> {
+pub fn get_church_numeral(v: u32, pos: ::scanner::SrcPosition) -> Box<Expression> {
     let mut value = AdditionPhase::Zero();
     for DigitAndPlace {digit, place} in Digits::new(v) {
         if digit == 0 {
@@ -90,12 +104,13 @@ pub fn get_church_numeral(v: u32) -> Box<Expression> {
         let place_value = e10(digit, place);
         value = add(place_value, value);
     }
-    match value {
+    let n = match value {
         AdditionPhase::Zero() =>
             lc!{λ"f".λ"x"."x"},
         AdditionPhase::One(e) =>
             e,
         AdditionPhase::More(e) =>
             lc!{λ"f".λ"x".e},
-    }
+    };
+    set_position(pos, n)
 }

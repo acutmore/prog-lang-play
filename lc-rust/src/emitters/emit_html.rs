@@ -44,14 +44,14 @@ impl Visitor<String> for HTMLEmitter {
     fn visit_expression(&mut self, e: &Expression) -> String {
         match e {
             &Symbol(ref s) => {
-                if s.at == 0 {
+                if s.at == 0 && s.width == 0 {
                     format!("{}", s.id)
                 } else {
                     format!("<span {}>{}</span>", range_attributes(s), s.id)
                 }
             },
             &Function(ref s, ref body) => {
-                if s.at == 0 {
+                if s.at == 0 && s.width == 0 {
                     return format!("({} => {})", s.id, body.accept(self));
                 }
                 let attributes = range_attributes(s);
