@@ -26,7 +26,7 @@ pub fn transpile_js(src: &str) -> Result<String, Error> {
 pub fn transpile_html(src: &str) -> Result<String, Error> {
     let program = parse(scan(src)?)?;
     let program = add_std_lib(program);
-    Ok(program.accept(&mut HTMLEmitter {}))
+    Ok(program.accept(&mut HTMLEmitter::new()))
 }
 
 const NULL: u8 = 0;
