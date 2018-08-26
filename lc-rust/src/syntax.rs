@@ -74,17 +74,3 @@ impl Expression {
         visitor.visit_expression(self)
     }
 }
-
-pub trait MutationVisitor<'a> {
-    fn visit_expression(& self, &'a mut Box<Expression>) -> &'a mut Box<Expression>;
-}
-
-pub trait Mutable {
-    fn accept_mutation<'a>(&'a mut self, visitor: &MutationVisitor<'a>) -> &'a mut Self;
-}
-
-impl Mutable for Box<Expression> {
-    fn accept_mutation<'a>(&'a mut self, visitor: &MutationVisitor<'a>) -> &'a mut Self {
-        visitor.visit_expression(self)
-    }
-}
