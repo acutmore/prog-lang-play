@@ -24,12 +24,16 @@
       grid-column: left / right;
     }
 
-    langinput{
+    #eval-preview {
+      padding-left: 1em;
+    }
+
+    langinput {
       grid-row: main-start;
       grid-column: left / middle;
     }
 
-    langoutput{
+    langoutput {
       grid-row: main-start;
       grid-column: middle / right;
     }
@@ -43,12 +47,8 @@
     #output {
       white-space: pre-wrap;
     }
-
-    #output > b {
-      font-size: larger;
-    }
   </style>
-  <header>Language Playground <button type="button" id="eval-output">Evaluate output</button></header>
+  <header>Language Playground <button type="button" id="eval-output">Evaluate output</button><span id="eval-preview"></span></header>
   <langinput><textarea id="input" class="expand">Type here</textarea></langinput>
   <langoutput><pre id="output">Results appear here</pre></langoutput>
 </body>

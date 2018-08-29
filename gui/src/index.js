@@ -1,6 +1,7 @@
 const input = document.getElementById('input');
 const output = document.getElementById('output');
 const evalButton = document.getElementById('eval-output');
+const evalPreview = document.getElementById('eval-preview');
 const {evaluateScript} = require('./outputEvaluator');
 const {generateHighlightRules} = require('./generateHighlightRules');
 const {fib, selectionStart, selectionEnd} = require('./examples/fibonacci');
@@ -87,5 +88,12 @@ input.onchange = processInput;
 document.onselectionchange = processHighlight;
 window.onselectionchange = processHighlight;
 evalButton.onclick = () => {
-    evaluateScript(output.innerText).then(console.log, console.error);
+    evalPreview.innerText = `...`;
+    const e = evaluateScript(output.innerText);
+    e.then(console.log, console.error);
+    e.then(result => {
+        evalPreview.innerText = `Result: ${result.number}`;
+    }, err => {
+        evalPreview.innerText = err.toString();
+    });
 };
