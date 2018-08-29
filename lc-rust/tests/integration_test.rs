@@ -96,3 +96,11 @@ fn it_compiles_number_to_html() {
         "<span data-lc-start=\"0b0000000000000000\" data-lc-end=\"0b0000000000000010\">(Ten => (f => Ten((f => (x => f(x)))(f))))((f => (x => f(f(f(f(f(f(f(f(f(f(x)))))))))))))</span>"
     );
 }
+
+#[test]
+fn it_compiles_small_program_to_html() {
+    assert_eq!(
+        lc::transpile_html("let x = 1 in x").unwrap(),
+        "<span data-lc-start=\"0b0000000000000100\" data-lc-end=\"0b0000000000000101\">(x => </span><span data-lc-start=\"0b0000000000001101\" data-lc-end=\"0b0000000000001110\">x</span><span data-lc-start=\"0b0000000000000100\" data-lc-end=\"0b0000000000000101\">)</span>(<span data-lc-start=\"0b0000000000001000\" data-lc-end=\"0b0000000000001001\">(f => (x => f(x)))</span>)"
+    );
+}

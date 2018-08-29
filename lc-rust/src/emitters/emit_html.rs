@@ -39,25 +39,46 @@ fn range_attributes(index: u16, width: u16) -> String {
     )
 }
 
+#[derive(Copy, Clone)]
+enum NodeIndex {
+    None,
+    Mixed,
+    IndexAndWidth((u16, u16)),
+}
+
+impl NodeIndex {
+    fn new(symbol: &SymbolInfo) -> NodeIndex {
+        if symbol.at == 0 && symbol.width == 0 {
+           NodeIndex::None
+        } else {
+            NodeIndex::IndexAndWidth((symbol.at, symbol.width))
+        }
+    }
+}
+
 pub struct HTMLEmitter {
     visited_parent: bool,
-    child_index: Option<(u16, u16)>,
+    child_index: NodeIndex
 }
 
 impl HTMLEmitter {
     pub fn new() -> HTMLEmitter {
-        HTMLEmitter { visited_parent: false, child_index: None }
+        HTMLEmitter { visited_parent: false, child_index: NodeIndex::None }
     }
 }
 
-fn merge_branches(left: Option<(u16, u16)>, right: Option<(u16, u16)>) -> Option<(u16, u16)> {
+fn merge_branches(left: NodeIndex, right: NodeIndex) -> NodeIndex {
     match left {
-        None => right,
-        Some((index, width)) =>
+        NodeIndex::None => right,
+        NodeIndex::Mixed => NodeIndex::Mixed,
+        NodeIndex::IndexAndWidth((index, width)) =>
             match right {
-                None => Some((index, width)),
-                Some((index2, _)) if index == index2 => Some((index, width)),
-                _ => None,
+                NodeIndex::None
+                    => NodeIndex::IndexAndWidth((index, width)),
+                NodeIndex::IndexAndWidth((index2, _)) if index == index2
+                    => NodeIndex::IndexAndWidth((index, width)),
+                _
+                    => NodeIndex::Mixed,
             },
     }
 }
@@ -67,11 +88,11 @@ impl Visitor<String> for HTMLEmitter {
         match e {
             &Symbol(ref s) => {
                 let has_parent = self.visited_parent;
-                if s.at == 0 && s.width == 0 {
-                    self.child_index = None;
+                let index = NodeIndex::new(s);
+                self.child_index = index;
+                if let NodeIndex::None = index {
                     format!("{}", s.id)
                 } else {
-                    self.child_index = Some((s.at, s.width));
                     if has_parent {
                         format!("{}", s.id)
                     } else {
@@ -82,29 +103,24 @@ impl Visitor<String> for HTMLEmitter {
             &Function(ref s, ref body) => {
                 let has_parent = self.visited_parent;
                 self.visited_parent = true;
-                let param_index = if s.at == 0 && s.width == 0 {
-                    None
-                } else {
-                    Some((s.at, s.width))
-                };
+                let param_index = NodeIndex::new(s);
                 let body = body.accept(self);
                 let body_index = self.child_index;
                 let child_index = merge_branches(param_index, body_index);
-                if let Some((index, width)) = child_index {
+                self.child_index = child_index;
+                if let NodeIndex::IndexAndWidth((index, width)) = child_index {
                     if has_parent {
-                        self.child_index = child_index;
                         format!("({} => {})", s.id, body)
                     } else {
                         format!("<span {}>({} => {})</span>", range_attributes(index, width), s.id, body)
                     }
                 } else {
-                    self.child_index = None;
-                    let body = if let Some(i) = body_index {
+                    let body = if let NodeIndex::IndexAndWidth(i) = body_index {
                         format!("<span {}>{}</span>", range_attributes(i.0, i.1), body)
                     } else {
                         body
                     };
-                    if let Some(i) = param_index {
+                    if let NodeIndex::IndexAndWidth(i) = param_index {
                         let attr = range_attributes(i.0, i.1);
                         format!("<span {}>({} => </span>{}<span {}>)</span>", attr, s.id, body, attr)
                     } else {
@@ -120,22 +136,21 @@ impl Visitor<String> for HTMLEmitter {
                 let right = right.accept(self);
                 let right_index = self.child_index;
                 let child_index = merge_branches(left_index, right_index);
-                if let Some((index, width)) = child_index {
+                self.child_index = child_index;
+                if let NodeIndex::IndexAndWidth((index, width)) = child_index {
                     if has_parent {
-                        self.child_index = child_index;
                         format!("{}({})", left, right)
                     } else {
                         format!("<span {}>{}({})</span>", range_attributes(index, width), left, right)
                     }
                 } else {
-                    self.child_index = None;
-                    let right = if let Some(i) = right_index {
+                    let right = if let NodeIndex::IndexAndWidth(i) = right_index {
                         format!("<span {}>{}</span>", range_attributes(i.0, i.1), right)
                     } else {
                         right
                     };
 
-                    if let Some(i) = left_index {
+                    if let NodeIndex::IndexAndWidth(i) = left_index {
                         let left_attributes = range_attributes(i.0, i.1);
                         format!("<span {}>{}(</span>{}<span {}>)</span>", left_attributes, left, right, left_attributes)
                     } else {
