@@ -47,8 +47,8 @@ function generateHighlightRules(start, end) {
         unsetStyle.push(`span[data-lc-end^="0b${lessThanPrefix}"]`);
     }
     let style = '';
-    style += `${setStyle.join(',\n')} { color: green }\n`;
-    style += `${unsetStyle.join(',\n')} { color: unset }\n`;
+    style += `${setStyle.join(',\n')} { background-color: lightskyblue; }\n`;
+    style += `${unsetStyle.join(',\n')} { background-color: unset }\n`;
     return style;
 }
 
