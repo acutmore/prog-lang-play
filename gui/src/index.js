@@ -3,6 +3,7 @@ const output = document.getElementById('output');
 const evalButton = document.getElementById('eval-output');
 const {evaluateScript} = require('./outputEvaluator');
 const {generateHighlightRules} = require('./generateHighlightRules');
+const {fib, selectionStart, selectionEnd} = require('./examples/fibonacci');
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder('utf-8');
@@ -17,6 +18,10 @@ function getCompiler() {
 let compilerInstance = void 0;
 getCompiler().then(i => {
     compilerInstance = i;
+    input.value = fib;
+    processInput();
+    input.focus();
+    input.setSelectionRange(selectionStart, selectionEnd);
 });
 
 function transferInput(instance, str) {
