@@ -21,7 +21,7 @@ function* lessThanPrefixes(n) {
         const char = a[i];
         switch (char) {
             case '1':
-                yield '0b' + a.substring(0, i) + '0';
+                yield a.substring(0, i) + '0';
             case '0':
                 break;
             default: throw new Error('expected binary string');
