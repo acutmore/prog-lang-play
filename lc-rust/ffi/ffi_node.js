@@ -1,5 +1,6 @@
 /// @ts-check
 const fs = require('fs');
+const pathLib = require('path');
 const stringDecoder = new (require('string_decoder').StringDecoder)('utf8');
 
 /**
@@ -7,8 +8,12 @@ const stringDecoder = new (require('string_decoder').StringDecoder)('utf8');
  * @returns {WebAssembly.Instance}
  */
 function makeProgram() {
+    const lc = pathLib.join(
+        __dirname,
+        '/../target/wasm32-unknown-unknown/release/lc.wasm'
+    );
     return WebAssembly.instantiate(
-        new Uint8Array(fs.readFileSync('./target/wasm32-unknown-unknown/release/lc.wasm'))
+        new Uint8Array(fs.readFileSync(lc))
     )
     .then(mod => mod.instance);
 }
