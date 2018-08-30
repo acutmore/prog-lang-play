@@ -6,7 +6,9 @@ module.exports = {
         bundle: './src/index.js',
         ['output-worker']: './src/output-worker.js'
     },
-    devtool: 'inline-source-map',
+    devtool: process.env.NODE_ENV === 'production'
+        ? void 0
+        : 'inline-source-map',
     devServer: {
         contentBase: './dist'
     },
