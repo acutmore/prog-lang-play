@@ -27,8 +27,8 @@ ready
 (f => (x => x))
 > 1
 (f => (x => f(x)))
-> let identiy = \x.x in identity 2
-(identiy => identity((f => (x => f(f(x))))))((x => x))
+> let identity = \x.x in identity 2
+(identity => identity((f => (x => f(f(x))))))((x => x))
 >
 ```
 
