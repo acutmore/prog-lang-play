@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "gh-pages": "cd gui; npm run build; cp ./dist/{index.html,bundle.js,lc.wasm} ..; echo 'done'"
+    "gh-pages": "cd gui; npm run build; cp ./dist/{index.html,bundle.js,lc.wasm,output-worker.js} ..; echo 'done'"
   },
   "devDependencies": {
     "mocha": "^5.0.0"
