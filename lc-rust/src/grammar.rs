@@ -66,7 +66,7 @@ mod tests {
     }
 
     #[test]
-    fn it_has_syntatic_sugar_for_int_literal() {
+    fn it_has_syntactic_sugar_for_int_literal() {
         assert_eq!(
             parse(scan("1").unwrap()).unwrap().accept(&mut PrettyPrinter {}),
             "Func(f){Func(x){Apply(Symbol(f), Symbol(x))}}",
@@ -74,7 +74,7 @@ mod tests {
     }
 
     #[test]
-    fn it_has_syntatic_sugar_for_let_expressions() {
+    fn it_has_syntactic_sugar_for_let_expressions() {
         assert_eq!(
             parse(scan("let a = b, c = d in e").unwrap()).unwrap().accept(&mut PrettyPrinter {}),
             "Apply(Func(a){Apply(Func(c){Symbol(e)}, Symbol(d))}, Symbol(b))",
@@ -82,7 +82,7 @@ mod tests {
     }
 
     #[test]
-    fn it_has_syntatic_sugar_for_if_expressions() {
+    fn it_has_syntactic_sugar_for_if_expressions() {
         assert_eq!(
             parse(scan("if condition then a else b").unwrap()).unwrap().accept(&mut PrettyPrinter {}),
             "Apply(Apply(Apply(Symbol(condition), Func(_){Symbol(a)}), Func(_){Symbol(b)}), Symbol(I))",
@@ -291,7 +291,7 @@ fn get_let_expressions(it: &mut PeekableTokens) -> Result<Box<Expression>, Error
     // expression
     let exp = expression(it)?;
 
-    // syntatic sugar: (var1 => (varN => expression)(valueN))(value1)
+    // syntactic sugar: (var1 => (varN => expression)(valueN))(value1)
     Ok(vars_and_values.into_iter().rev().fold(exp, |exp, (var, value)| {
         let f = lc!{λ{var}.exp};
         lc!{(f value)}

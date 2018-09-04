@@ -4,12 +4,12 @@
 
 - [x] Lambda Calculus scanner & parser
 - [x] Lamda Calculus to Javascript transpiler
-- [x] Add syntatic sugar for numeric literals
-- [x] Add syntatic sugar for 'let' expressions
-- [ ] Add syntatic sugar for recursive 'letrec' expressions
-- [x] Add syntatic sugar for if-then-else expressions
-- [ ] Add syntatic sugar for lists
-- [ ] Add syntatic sugar for multi parameter functions
+- [x] Add syntactic sugar for numeric literals
+- [x] Add syntactic sugar for 'let' expressions
+- [ ] Add syntactic sugar for recursive 'letrec' expressions
+- [x] Add syntactic sugar for if-then-else expressions
+- [ ] Add syntactic sugar for lists
+- [ ] Add syntactic sugar for multi parameter functions
 - [x] Lazily include a standard lib for common functions
 - [ ] Expand standard lib
 - [ ] Implement LC bytecode virtual machine
