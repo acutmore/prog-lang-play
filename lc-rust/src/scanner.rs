@@ -66,6 +66,22 @@ mod tests {
     }
 
     #[test]
+    fn it_scans_if_expression() {
+        assert_eq!(
+            scan("if t then a else b").unwrap(),
+            vec![
+                SrcToken(If, pos(1, 1, 0, 2)),
+                SrcToken(Symbol("t".to_string()), pos(1, 4, 3, 1)),
+                SrcToken(Then, pos(1, 6, 5, 4)),
+                SrcToken(Symbol("a".to_string()), pos(1, 11, 10, 1)),
+                SrcToken(Else, pos(1, 13, 12, 4)),
+                SrcToken(Symbol("b".to_string()), pos(1, 18, 17, 1)),
+                SrcToken(EOF, pos(1, 19, 18, 0)),
+            ],
+        );
+    }
+
+    #[test]
     fn it_produces_an_error() {
         assert_eq!(
             scan("!").unwrap_err().msg,
@@ -106,6 +122,9 @@ pub enum Token {
     Equals,
     In,
     Comma,
+    If,
+    Then,
+    Else,
     EOF,
 }
 
@@ -198,6 +217,9 @@ pub fn scan(src: &str) -> Result<Vec<SrcToken>, Error> {
             let token = match word.as_ref() {
                 "let" => Token::Let,
                 "in" => Token::In,
+                "if" => Token::If,
+                "then" => Token::Then,
+                "else" => Token::Else,
                 _ => Token::Symbol(word),
             };
 

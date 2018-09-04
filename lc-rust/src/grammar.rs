@@ -7,6 +7,7 @@
  * lamb -> primary .
  * primary -> `(` expression `)` .
  * primary -> `let` VAR `=` expression (`,` VAR `=` expression)* `in` expression .
+ * primary -> `if` expression `then` expression `else` expression
  * primary -> VAR .
  * primary -> INT .
  *
@@ -79,6 +80,14 @@ mod tests {
             "Apply(Func(a){Apply(Func(c){Symbol(e)}, Symbol(d))}, Symbol(b))",
         );
     }
+
+    #[test]
+    fn it_has_syntatic_sugar_for_if_expressions() {
+        assert_eq!(
+            parse(scan("if condition then a else b").unwrap()).unwrap().accept(&mut PrettyPrinter {}),
+            "Apply(Apply(Apply(Symbol(condition), Func(_){Symbol(a)}), Func(_){Symbol(b)}), Symbol(I))",
+        );
+    }
 }
 
 use syntax::*;
@@ -121,6 +130,8 @@ fn apply(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
             | Some(&SrcToken(Token::Dot, _))
             | Some(&SrcToken(Token::In, _))
             | Some(&SrcToken(Token::Comma, _))
+            | Some(&SrcToken(Token::Then, _))
+            | Some(&SrcToken(Token::Else, _))
             | Some(&SrcToken(Token::EOF, _)) => return Ok(e),
             _ => {
                 let rhs = lamb(it)?;
@@ -141,12 +152,14 @@ fn lamb(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
 
 // primary -> '(' expression ')' .
 // primary -> `let` VAR `=` expression (`,` VAR `=` expression)* `in` expression .
+// primary -> `if` expression `then` expression `else` expression .
 // primary -> VAR .
 // primary -> INT .
 fn primary(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     enum PrimaryType {
         Bracket,
         Let,
+        If,
         Symbol,
         Int,
         Error(SrcPosition)
@@ -155,6 +168,7 @@ fn primary(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     let primary_type = match it.peek() {
         Some(&SrcToken(Token::BracketOpen, _)) => PrimaryType::Bracket,
         Some(&SrcToken(Token::Let, _)) => PrimaryType::Let,
+        Some(&SrcToken(Token::If, _)) => PrimaryType::If,
         Some(&SrcToken(Token::Symbol(_), _)) => PrimaryType::Symbol,
         Some(&SrcToken(Token::Integer(_), _)) => PrimaryType::Int,
         Some(&SrcToken(_, ref pos)) => PrimaryType::Error(*pos),
@@ -164,6 +178,7 @@ fn primary(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
     match primary_type {
         PrimaryType::Bracket => get_bracket_expression(it),
         PrimaryType::Let => get_let_expressions(it),
+        PrimaryType::If => get_if_expression(it),
         PrimaryType::Symbol => get_symbol(it),
         PrimaryType::Int => get_church_numeral(it),
         PrimaryType::Error(ref pos) => Err(Error {
@@ -281,6 +296,51 @@ fn get_let_expressions(it: &mut PeekableTokens) -> Result<Box<Expression>, Error
         let f = lc!{λ{var}.exp};
         lc!{(f value)}
     }))
+}
+
+// get_if_expression -> `if` expression `then` expression `else` expression .
+fn get_if_expression(it: &mut PeekableTokens) -> Result<Box<Expression>, Error> {
+
+    // if
+    match it.next().unwrap() {
+        SrcToken(Token::If, _) => Ok(()),
+        SrcToken(_, pos) => Err(Error {
+            msg: "expected 'let'".to_string(),
+            at: pos,
+        }),
+    }?;
+
+    let condition = expression(it)?;
+
+    // then
+    match it.next().unwrap() {
+        SrcToken(Token::Then, _) => Ok(()),
+        SrcToken(_, pos) => Err(Error {
+            msg: "expected 'then'".to_string(),
+            at: pos,
+        }),
+    }?;
+
+    let true_case = expression(it)?;
+
+    // else
+    match it.next().unwrap() {
+        SrcToken(Token::Else, _) => Ok(()),
+        SrcToken(_, pos) => Err(Error {
+            msg: "expected 'else'".to_string(),
+            at: pos,
+        }),
+    }?;
+
+    let false_case = expression(it)?;
+
+    let lazy_true_case = lc!{λ"_".true_case};
+    let lazy_false_case = lc!{λ"_".false_case};
+    let call_lazy_fn = lc!{"I"};
+    let e = lc!{(condition lazy_true_case)};
+    let e = lc!{(e lazy_false_case)};
+    let e = lc!{(e call_lazy_fn)};
+    Ok(e)
 }
 
 // get_symbol -> VAR

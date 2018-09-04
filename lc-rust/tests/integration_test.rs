@@ -66,6 +66,14 @@ fn it_compiles_programs_with_let_expressions_with_mutiple_values() {
 }
 
 #[test]
+fn it_compiles_programs_with_if_expressions() {
+    assert_eq!(
+        lc::transpile_js("if condition then a else b c").unwrap(),
+        "(I => condition((_ => a))((_ => b(c)))(I))((x => x))"
+    );
+}
+
+#[test]
 fn it_includes_the_identity_function_in_the_std_lib() {
     assert_eq!(
         lc::transpile_js("(λf.g)(I)").unwrap(),

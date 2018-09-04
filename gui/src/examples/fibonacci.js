@@ -13,19 +13,19 @@ let
   leqOne = lessOrEqual 1,
   add = λn.λm.(λf.λx.m f (n f x)),
   ${SEL_START}fibFix = λfib.λn. (
-    (isZero n)
-      (λ_.0)
-      (λ_.leqOne n
-        1
-        (add
+    if isZero n
+      then 0
+      else if leqOne n
+        then 1
+        else add
           (fib fib (minusOne n))
           (fib fib (minusTwo n))
-        )
-      )
-    ) True${SEL_END},
+
+  )${SEL_END},
   fib = fibFix fibFix
 in
   fib 8
+
 `;
 const selectionStart = fib.indexOf(SEL_START);
 fib = fib.replace(SEL_START, '');
