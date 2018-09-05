@@ -19,7 +19,7 @@ setTimeout(function run() {
 t('Identity', (compiler) => {
     assert.equal(
         transpileLc('\\x.x', compiler),
-        '(x => x)'
+        'x => x'
     );
 });
 
@@ -43,21 +43,21 @@ t(`Two errors in a row`, (compiler) => {
 t(`Small program`, (compiler) => {
     assert.equal(
         transpileLc('100', compiler).length,
-        112,
+        102,
     );
 });
 
 t(`Medium program`, (compiler) => {
     assert.equal(
         transpileLc('500', compiler).length,
-        124
+        114
     );
 });
 
 t(`Large program`, (compiler) => {
     assert.equal(
         transpileLc('999', compiler).length,
-        265
+        249
     );
 });
 

@@ -13,7 +13,7 @@ fn it_produces_unexpected_token_error() {
 fn it_generates_identity_function() {
     assert_eq!(
         lc::transpile_js("λa.a").unwrap(),
-        "(a => a)"
+        "a => a"
     );
 }
 
@@ -29,7 +29,7 @@ fn it_generates_function_call() {
 fn it_generates_church_numerial_0() {
     assert_eq!(
         lc::transpile_js("0").unwrap(),
-        "(f => (x => x))"
+        "f => x => x"
     );
 }
 
@@ -37,7 +37,7 @@ fn it_generates_church_numerial_0() {
 fn it_generates_church_numerial_1() {
     assert_eq!(
         lc::transpile_js("1").unwrap(),
-        "(f => (x => f(x)))"
+        "f => x => f(x)"
     );
 }
 
@@ -45,7 +45,7 @@ fn it_generates_church_numerial_1() {
 fn it_compiles_a_simple_program() {
     assert_eq!(
         lc::transpile_js("(λa.λb.a b) foo bar").unwrap(),
-        "(a => (b => a(b)))(foo)(bar)"
+        "(a => b => a(b))(foo)(bar)"
     );
 }
 
@@ -53,7 +53,7 @@ fn it_compiles_a_simple_program() {
 fn it_compiles_programs_with_let_expressions() {
     assert_eq!(
         lc::transpile_js("let foo = bar in λf.x").unwrap(),
-        "(foo => (f => x))(bar)"
+        "(foo => f => x)(bar)"
     );
 }
 
@@ -61,7 +61,7 @@ fn it_compiles_programs_with_let_expressions() {
 fn it_compiles_programs_with_let_expressions_with_mutiple_values() {
     assert_eq!(
         lc::transpile_js("let foo = bar, car = zar in λf.x").unwrap(),
-        "(foo => (car => (f => x))(zar))(bar)"
+        "(foo => (car => f => x)(zar))(bar)"
     );
 }
 
@@ -69,7 +69,7 @@ fn it_compiles_programs_with_let_expressions_with_mutiple_values() {
 fn it_compiles_programs_with_if_expressions() {
     assert_eq!(
         lc::transpile_js("if condition then a else b c").unwrap(),
-        "(I => condition((_ => a))((_ => b(c)))(I))((x => x))"
+        "(I => condition(_ => a)(_ => b(c))(I))(x => x)"
     );
 }
 
@@ -77,7 +77,7 @@ fn it_compiles_programs_with_if_expressions() {
 fn it_includes_the_identity_function_in_the_std_lib() {
     assert_eq!(
         lc::transpile_js("(λf.g)(I)").unwrap(),
-        "(I => (f => g)(I))((x => x))"
+        "(I => (f => g)(I))(x => x)"
     );
 }
 
@@ -85,7 +85,7 @@ fn it_includes_the_identity_function_in_the_std_lib() {
 fn it_includes_ten_in_the_std_lib() {
     assert_eq!(
         lc::transpile_js("Ten").unwrap(),
-        "(Ten => Ten)((f => (x => f(f(f(f(f(f(f(f(f(f(x)))))))))))))"
+        "(Ten => Ten)(f => x => f(f(f(f(f(f(f(f(f(f(x)))))))))))"
     );
 }
 
@@ -93,7 +93,7 @@ fn it_includes_ten_in_the_std_lib() {
 fn it_compiles_larger_numbers_to_a_compressed_church_numeral() {
     assert_eq!(
         lc::transpile_js("999").unwrap(),
-        "(Ten => (f => (x => (f => (f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))((f => (x => f(f(x))))(Ten)(f)))(f)((f => Ten((f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))(f)))(f)((f => (x => f(f(f(f(f(f(f(f(f(x)))))))))))(f)(x))))))((f => (x => f(f(f(f(f(f(f(f(f(f(x)))))))))))))",
+        "(Ten => f => x => (f => (f => x => f(f(f(f(f(f(f(f(f(x))))))))))((f => x => f(f(x)))(Ten)(f)))(f)((f => Ten((f => x => f(f(f(f(f(f(f(f(f(x))))))))))(f)))(f)((f => x => f(f(f(f(f(f(f(f(f(x))))))))))(f)(x))))(f => x => f(f(f(f(f(f(f(f(f(f(x)))))))))))",
     );
 }
 

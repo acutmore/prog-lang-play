@@ -24,11 +24,11 @@ node ./lc-rust/repl.js
 loading...
 ready
 > 0
-(f => (x => x))
+f => x => x
 > 1
-(f => (x => f(x)))
+f => x => f(x)
 > let identity = \x.x in identity 2
-(identity => identity((f => (x => f(f(x))))))((x => x))
+(identity => identity(f => x => f(f(x))))(x => x)
 >
 ```
 
