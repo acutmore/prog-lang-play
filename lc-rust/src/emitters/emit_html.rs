@@ -58,12 +58,13 @@ impl NodeIndex {
 
 pub struct HTMLEmitter {
     visited_parent: bool,
-    child_index: NodeIndex
+    child_index: NodeIndex,
+    call_target: bool,
 }
 
 impl HTMLEmitter {
     pub fn new() -> HTMLEmitter {
-        HTMLEmitter { visited_parent: false, child_index: NodeIndex::None }
+        HTMLEmitter { visited_parent: false, child_index: NodeIndex::None, call_target: false }
     }
 }
 
@@ -87,6 +88,7 @@ impl Visitor<String> for HTMLEmitter {
     fn visit_expression(&mut self, e: &Expression) -> String {
         match e {
             &Symbol(ref s) => {
+                self.call_target = false;
                 let has_parent = self.visited_parent;
                 let index = NodeIndex::new(s);
                 self.child_index = index;
@@ -101,6 +103,8 @@ impl Visitor<String> for HTMLEmitter {
                 }
             },
             &Function(ref s, ref body) => {
+                let call_target = self.call_target;
+                self.call_target = false;
                 let has_parent = self.visited_parent;
                 self.visited_parent = true;
                 let param_index = NodeIndex::new(s);
@@ -110,9 +114,13 @@ impl Visitor<String> for HTMLEmitter {
                 self.child_index = child_index;
                 if let NodeIndex::IndexAndWidth((index, width)) = child_index {
                     if has_parent {
-                        format!("({} => {})", s.id, body)
+                        if call_target {
+                            format!("({} => {})", s.id, body)
+                        } else {
+                            format!("{} => {}", s.id, body)
+                        }
                     } else {
-                        format!("<span {}>({} => {})</span>", range_attributes(index, width), s.id, body)
+                        format!("<span {}>{} => {}</span>", range_attributes(index, width), s.id, body)
                     }
                 } else {
                     let body = if let NodeIndex::IndexAndWidth(i) = body_index {
@@ -122,21 +130,33 @@ impl Visitor<String> for HTMLEmitter {
                     };
                     if let NodeIndex::IndexAndWidth(i) = param_index {
                         let attr = range_attributes(i.0, i.1);
-                        format!("<span {}>({} => </span>{}<span {}>)</span>", attr, s.id, body, attr)
+                        if call_target {
+                            format!("<span {}>({} => </span>{}<span {}>)</span>", attr, s.id, body, attr)
+
+                        } else {
+                            format!("<span {}>{} => </span>{}", attr, s.id, body)
+                        }
                     } else {
-                        return format!("({} => {})", s.id, body);
+                        if call_target {
+                            format!("({} => {})", s.id, body)
+                        } else {
+                            format!("{} => {}", s.id, body)
+                        }
                     }
                 }
             },
             &Application(ref left, ref right) => {
                 let has_parent = self.visited_parent;
                 self.visited_parent = true;
+                self.call_target = true;
                 let left = left.accept(self);
+                self.call_target = false;
                 let left_index = self.child_index;
                 let right = right.accept(self);
                 let right_index = self.child_index;
                 let child_index = merge_branches(left_index, right_index);
                 self.child_index = child_index;
+
                 if let NodeIndex::IndexAndWidth((index, width)) = child_index {
                     if has_parent {
                         format!("{}({})", left, right)

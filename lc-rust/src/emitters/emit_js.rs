@@ -68,8 +68,8 @@ impl Visitor<String> for JavascriptEmitter {
                 let args = right.accept(self);
                 let target = left.accept(self);
                 let is_fn = is_function(left);
-                let wrapped = &target[0..1] == "(";
-                if is_fn && !wrapped {
+
+                if is_fn {
                     format!("({})({})", target, args)
                 } else {
                     format!("{}({})", target, args)
