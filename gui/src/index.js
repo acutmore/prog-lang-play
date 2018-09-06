@@ -72,11 +72,17 @@ function processInput() {
 const style = document.createElement('style');
 style.type = 'text/css';
 
+let lastSelection;
 function processHighlight() {
     const inStart = input.selectionStart;
     const inEnd = input.selectionEnd;
     if (typeof inStart !== 'number') return;
     if (typeof inEnd !== 'number') return;
+    const hash = `${inStart}-${inEnd}`;
+    if (lastSelection === hash) {
+        return;
+    }
+    lastSelection = hash;
     const rules = generateHighlightRules(inStart, inEnd);
     style.innerHTML = rules;
     style.remove();
@@ -85,8 +91,9 @@ function processHighlight() {
 
 input.onkeyup = processInput;
 input.onchange = processInput;
-document.onselectionchange = processHighlight;
-window.onselectionchange = processHighlight;
+document.addEventListener("selectionchange", processHighlight);
+setInterval(processHighlight, 150); // firefox fallback
+
 evalButton.onclick = () => {
     evalPreview.innerText = `...`;
     const e = evaluateScript(output.innerText);
